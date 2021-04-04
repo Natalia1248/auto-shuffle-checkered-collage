@@ -13,6 +13,9 @@ class grid_canvas(matrix, Canvas):
         self.n=0
         self.cover=0
 
+        self.cellw=50
+        self.cellh=50
+
         Canvas.__init__(self, master=master, cnf={}, **kw)
 
     def myupdate(self,image):
@@ -30,11 +33,10 @@ class grid_canvas(matrix, Canvas):
         self.orange_ids= matrix(image.size[0], image.size[1])
         self.update()
         
-    def create_grid(self, image, cellw, cellh):
-        self.cellw=cellw
-        self.cellh=cellh
-        self.gwidth=(image.size[0]//cellw)+1
-        self.gheight=(image.size[1]//cellh)+1
+    def create_grid(self, image):
+        
+        self.gwidth=(image.size[0]//self.cellw)+1
+        self.gheight=(image.size[1]//self.cellh)+1
         self['scrollregion']=(0,0,image.size[0],image.size[1])
         super().__init__(
             image.size[0],

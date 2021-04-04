@@ -4,9 +4,8 @@ from tkinter import filedialog
 from collections import deque
 from PIL import Image
 
-cellw=50#current.size[0]//22
-cellh=50#current.size[1]//26
-s1=0
+
+
 general_color='#310058'
 lb_color='#00D6DC'
 la_color='#00999D'
@@ -19,14 +18,8 @@ window.title('Checkered collage-o-matic')
 window.configure(bg=general_color)
 
 imagepath=""#filedialog.askopenfile().name#"C:\\Users\\Usuario\\OneDrive\\Escritorio\\some python shit\\playin around slash learning\\ImgsStuff\\image.jpg"
-history_size=64
-history= deque()
-for i in range(history_size):
-    history.append(None)
 
-current=0
 
-first=True
 wscroll_length=0#2*history[current].size[0]//3
 hscroll_length=0
 l_frm=tk.Frame(master=window,

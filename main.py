@@ -1,5 +1,5 @@
 from config import *
-from event_logic import *
+from gui_event_handlers import *
 
 window.grid_columnconfigure(0,weight=1, minsize=15)
 window.grid_columnconfigure(1, weight=1)
@@ -48,14 +48,14 @@ shfl_btn.configure(bg=rb_color, fg='white', activebackground=ra_color, activefor
 
 or_btn=tk.Button(master=r_frm,
                  command=original,
-                 text='replace with original'
+                 text='replace with original cells'
                  )
 or_btn.pack(side='right')
 or_btn.configure(bg=rb_color, fg='white', activebackground=ra_color, activeforeground='white')
 
 swap_btn=tk.Button(master=r_frm,
                    command=swapb,
-                   text='swap two cells\n(selecting more wont do anything)'
+                   text='swap two cells\n(swaps the first two selected)'
                    )
 swap_btn.pack(side='right')
 swap_btn.configure(bg=rb_color, fg='white', activebackground=ra_color, activeforeground='white')
@@ -116,7 +116,7 @@ hscrollbar.grid(row=1, column=1, sticky='wse')
 c.config(yscrollcommand=vscrollbar.set, xscrollcommand=hscrollbar.set)
 c.outline=""
 c.grid(row=3, column=1, sticky='n')
-c.create_text(200,100,text="Load an image pleease", font=('Helvetica',24))
+c.create_text(200,100,text="Load an image please", font=('Helvetica',24))
 
 
 wentry=tk.Entry(s_frm, textvariable=wstr, width=4)

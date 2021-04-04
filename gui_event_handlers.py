@@ -2,47 +2,36 @@ from copy import deepcopy
 from tkinter import filedialog
 import tkinter as tk
 from functools import wraps
+from history import History
+
 
 import PIL
 
 from config import *
-from pilalgs import test2, to_red , crop, shuffle_alg, shuffle_2
+from effects import test2, to_red , crop, shuffle_alg, shuffle_2
 
 
-def nofirst(f):
-    @wraps(f)
-    def inn(event=None):
-        if not first: f(event)
-    return inn
+history=History(3)
 
 #NOT FOR RESIZES
-def imtrans(funct):
+def pushes_new_image(func):
     def inn(event=None):
-        global current
-        if first: return
 
         rectid= c.create_rectangle(0,0,
-                                   history[current].size[0],
-                                   history[current].size[1],
+                                   history.get_current().size[0],
+                                   history.get_current().size[1],
                                    fill='green', stipple='gray25')
         c.update()
-        buff= deepcopy(history[current])
+
+        new_image=func(deepcopy(history.get_current()))
 
         c.delete('all')
 
-        if current<history_size-1:
-            history[current+1]=funct(buff)
-            for i in range(current+2, history_size, 1):
-                history[i]=None
-            current+=1
-        else:
-            history.popleft()
-            history.append(funct(buff))
-        
-        c.update_image(history[current])
-        
+        history.push(new_image)
+
+        c.update_image(new_image)
     
-        print(len(c.find_all()))
+        #print(len(c.find_all()))
         
     return inn
 
@@ -53,88 +42,75 @@ def cleans(funct):
         funct()
     return inn
 
-@nofirst
 @cleans
-@imtrans
-def function1(buffed):
-    return test2(buffed, c)
+@pushes_new_image
+def function1(img):
+    return test2(img, c)
 
-@nofirst
 @cleans
-@imtrans
-def function2(buffed):
-    return to_red(buffed, c)
+@pushes_new_image
+def function2(img):
+    return to_red(img, c)
 
-@nofirst
 @cleans
-@imtrans
-def restart(buffed):
+@pushes_new_image
+def restart(img):
     return Image.open(imagepath)
 
-@nofirst
 @cleans
-@imtrans
-def cropimage(buffed):
-    xtrim=buffed.size[0]%c.cellw
-    ytrim=buffed.size[1]%c.cellh
-    cropped= buffed.crop((0,0,
-                          buffed.size[0]-xtrim,
-                          buffed.size[1]-ytrim)
+@pushes_new_image
+def cropimage(img):
+    xtrim=img.size[0]%c.cellw
+    ytrim=img.size[1]%c.cellh
+    cropped= img.crop((0,0,
+                          img.size[0]-xtrim,
+                          img.size[1]-ytrim)
         )
     return cropped
 
-@nofirst
 @cleans
-@imtrans
-def crop_even(buffed):
-    if(buffed.size[0]%c.cellw)%2==0:
-        xtrim=(buffed.size[0]%c.cellw)/2
+@pushes_new_image
+def crop_even(img):
+    if(img.size[0]%c.cellw)%2==0:
+        xtrim=(img.size[0]%c.cellw)/2
         addx=0
     else:
-        xtrim=(buffed.size[0]%c.cellw)//2
+        xtrim=(img.size[0]%c.cellw)//2
         addx=1
-    if(buffed.size[1]%c.cellh)%2==0:
-        ytrim=(buffed.size[1]%c.cellh)/2
+    if(img.size[1]%c.cellh)%2==0:
+        ytrim=(img.size[1]%c.cellh)/2
         addy=0
     else:
-        ytrim=(buffed.size[1]%c.cellw)//2
+        ytrim=(img.size[1]%c.cellw)//2
         addy=1
-    cropped= buffed.crop((xtrim,ytrim,
-                          buffed.size[0]-xtrim-addx,
-                          buffed.size[1]-ytrim-addy)
+    cropped= img.crop((xtrim,ytrim,
+                          img.size[0]-xtrim-addx,
+                          img.size[1]-ytrim-addy)
         )
     c['scrollregion']=(0,0, cropped.size[0], cropped.size[1])
     return cropped
 
-@nofirst
 def undo(event=None):
-    global current, history, c
-    if current>0:
-        current-=1
-    c.create_grid(history[current], c.cellw, c.cellh)
+    history.undo()
+    c.create_grid(history.get_current())
 
-@nofirst   
 def redo(event=None):
-    global current, history, c
-    if current<history_size and history[current+1]!=None:
-        current+=1
-    c.create_grid(history[current], c.cellw, c.cellh)
+    history.redo()
+    c.create_grid(history.get_current())
 
-@nofirst 
-@imtrans
-def original(buffed):
+@pushes_new_image
+def original(img):
     orig=Image.open(imagepath)
     for i in range(c.gheight):
         for j in range(c.gwidth):
             if c.retrieve(j,i)==1:
                 box=(j*c.cellw,i*c.cellh,j*c.cellw+c.cellw,i*c.cellh+c.cellh)
-                buffed.paste(orig.crop(box), box)
-    return buffed
+                img.paste(orig.crop(box), box)
+    return img
 
 
 
 writing=0
-@nofirst
 def canvas_click(event):
     global writing
     c.delete(c.cover)
@@ -153,7 +129,6 @@ def canvas_click(event):
         c.write_select(x,y,0)
         writing=0
     
-@nofirst  
 def canvas_drag(event):
     global writing
     c.delete(c.cover)
@@ -165,12 +140,11 @@ def canvas_drag(event):
     
     c.write_select(x,y,writing)
 
-@nofirst
 def clear(event):
     
     rectid= c.create_rectangle(0,0,
-                                   history[current].size[0],
-                                   history[current].size[1],
+                                   history.get_current().size[0],
+                                   history.get_current().size[1],
                                    fill='green', stipple='gray25'
                                )
     c.unselect_all()
@@ -178,12 +152,11 @@ def clear(event):
     c.delete(rectid)
     
 
-@nofirst
 def selal(event):
     
     rectid= c.create_rectangle(0,0,
-                                   history[current].size[0],
-                                   history[current].size[1],
+                                   history.get_current().size[0],
+                                   history.get_current().size[1],
                                    fill='green', stipple='gray25'
                                )
     
@@ -193,7 +166,6 @@ def selal(event):
     print(len(c.find_all()))
 
 aux=1
-@nofirst
 def width_slide(event):
     global intermediate, aux
     if c.cover!=0: 
@@ -208,7 +180,6 @@ def width_slide(event):
     c.resize_grid(wval.get(), c.cellh)
     wstr.set(str(event))
 
-@nofirst
 def height_slide(event):
     global intermediate, aux
     if c.cover!=0: 
@@ -223,7 +194,6 @@ def height_slide(event):
     c.resize_grid(c.cellw, hval.get())
     hstr.set(str(event))
 
-@nofirst
 def entpress(event):
     if not (int(wstr.get())==1 or int(hstr.get())==1):
         
@@ -243,7 +213,6 @@ def entpress(event):
                 selal()
     
 checked=False
-@nofirst
 def check(event=None):
     global checked, aux
     checked=not checked
@@ -256,7 +225,6 @@ def check(event=None):
         #aux=2
     c.resize_grid(hval.get(),wval.get())
 
-@nofirst
 def saves(event=None):
     extensions=[('Png','*.png'),
                 ('Jpg','*.jpg'),
@@ -264,15 +232,17 @@ def saves(event=None):
                 ('type your own and see if it happens to be supported','*')]
     try:
         fileobj=filedialog.asksaveasfile(defaultextension=extensions,filetypes=extensions)
-        if fileobj.name!=None: history[current].save(fileobj.name)
+        if fileobj.name!=None: history.get_current().save(fileobj.name)
     except: pass
 
 
-@nofirst
 def cleanup(event=None):
-    global effects_frm, did
-    if effects_frm != None: effects_frm.destroy()
-    did=False
+    global effects_frm
+    if effects_frm != None:
+        effects_frm.destroy()
+        #the previous frame will be garbage collected
+        effects_frm=None
+    
     
 height_sldr=0
 width_sldr=0
@@ -303,37 +273,27 @@ def openim(event=None):
     width_sldr=tk.Scale(master=s_frm,from_=2,to=im.size[0],length=wlen,command=width_slide,label='CELL WIDTH',width=10,variable=wval)
     width_sldr.grid(row=0,column=0)
     width_sldr.set(50)
-    if first:
-        c.create_grid(im, 50, 50)
-        first=False
-    else: c.create_grid(im, c.cellw, c.cellh)
-    if current==0:
-        history[current]=im
-    elif current<history_size-1 and current!=0:
-        history[current+1]=im
-        for i in range(current+2, history_size, 1):
-            history[i]=None
-        current+=1
-    else:
-        history.popleft()
-        history.append(im)
+    
+    
+
+    c.create_grid(im)
+    
+    history.push(im)
 
 
 effects_frm=None
-did=False
 
-@nofirst
 @cleans
 def shuffle(event=None):
-    global effects_frm, did 
-    @imtrans
+    global effects_frm 
+    @pushes_new_image
     def com(buff):
         try:
             var=int(entry.get())
         except:
             var=0
         return shuffle_alg(buff, c, var)
-    if not did:
+    if effects_frm==None:
         effects_frm=tk.Frame(master=window)
         effects_frm['bg']='purple'
         effects_frm.grid(row=3, column=3, sticky='w', pady=10)
@@ -344,13 +304,12 @@ def shuffle(event=None):
         entry.pack()
     
         button.pack(anchor='center')
-        did=True
 
-@nofirst
+
 @cleans
 def shuffle2(event=None):
     global effects_frm, did 
-    @imtrans
+    @pushes_new_image
     def com(buff):
         try:
             var=int(entry.get())
@@ -358,7 +317,7 @@ def shuffle2(event=None):
         except:
             var=0
         return shuffle_2(buff, c, var)
-    if not did:
+    if effects_frm==None:
         effects_frm=tk.Frame(master=window)
         effects_frm['bg']='purple'
         effects_frm.grid(row=3, column=3, sticky='w', pady=10)
@@ -372,7 +331,6 @@ def shuffle2(event=None):
         did=True
 
 show_lines=False
-@nofirst
 def lines(event):
     global show_lines
     
@@ -384,7 +342,7 @@ def lines(event):
     show_lines=not show_lines
 
 @cleans
-@imtrans
+@pushes_new_image
 def swapb(buff):
     cell1=0
     cell2=0

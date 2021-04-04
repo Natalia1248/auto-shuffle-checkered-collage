@@ -69,6 +69,7 @@ def stain_all(image, matrix):
                 box=(x, y, x+cellw, y+cellh)
                 image.paste(stain_orange(image.crop(box)), box)
     return image
+
 def select_stain(image, matrix):
     cellw= matrix.cellw
     cellh= matrix.cellh
