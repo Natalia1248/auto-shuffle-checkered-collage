@@ -24,7 +24,7 @@ class History:
         if self.current_pos<self.last_valid:
             self.current_pos+=1
 
-    def get_current(self):
+    def current(self):
         return self.items[self.current_pos-1]
 
 

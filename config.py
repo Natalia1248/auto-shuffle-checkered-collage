@@ -1,9 +1,8 @@
-from grid_canvas import grid_canvas
+from grid_canvas import GridCanvas
 import tkinter as tk
 from tkinter import filedialog
 from collections import deque
 from PIL import Image
-
 
 
 general_color='#310058'
@@ -12,15 +11,16 @@ la_color='#00999D'
 rb_color='#A300D9'
 ra_color='#8E00BD'
 s_color='#0C01BE'
+
 window=tk.Tk()
 window.iconbitmap('icon.ico')
 window.title('Checkered collage-o-matic')
 window.configure(bg=general_color)
 
-imagepath=""#filedialog.askopenfile().name#"C:\\Users\\Usuario\\OneDrive\\Escritorio\\some python shit\\playin around slash learning\\ImgsStuff\\image.jpg"
+imagepath=""
 
 
-wscroll_length=0#2*history[current].size[0]//3
+wscroll_length=0
 hscroll_length=0
 l_frm=tk.Frame(master=window,
                relief=tk.RAISED,
@@ -40,10 +40,8 @@ s_frm['bg']=s_color
 c_frm=tk.Frame(window)
 c_frm['bg']=s_color
 c_frm.grid(row=1,column=1, padx=5, pady=5)
-c=grid_canvas(window,)
 
-
-#print(c.cellw)
+c=GridCanvas(window,)
 
 wstr=tk.StringVar()
 wval=tk.IntVar()

@@ -1,147 +1,81 @@
 from PIL import Image
-from matrix import matrix
+from matrix import Matrix
 from random import randint
 
-def to_red(image, matrix):
-    cellw= matrix.cellw
-    cellh= matrix.cellh
+def to_red(image, c):
+    cellw= c.cellw
+    cellh= c.cellh
 
-    for i in range(matrix.width):
-        for j in range(matrix.height):
-            
-            if matrix.retrieve(i,j)==1:
-                x=i*cellw
-                y=j*cellh
-                box=(x, y, x+cellw, y+cellh)
-                image.paste(make_red(image.crop(box)), box)
+    for i, j in c.selection.all_positions():
+            x=i*cellw
+            y=j*cellh
+            box=(x, y, x+cellw, y+cellh)
+            image.paste(make_red(image.crop(box)), box)
     return image
 
-def test2(image, matrix):
-    counter=0
-
-    cellw= matrix.cellw
-    cellh= matrix.cellh
-
-    for i in range(matrix.width):
-        for j in range(matrix.height):
+def to_red_checkers(image, c):
+    cellw= c.cellw
+    cellh= c.cellh
+    for i in range(c.selection.left, c.selection.right+1):
+        for j in range(c.selection.top, c.selection.bottom+1):
             
-            if matrix.retrieve(i,j)==1:
+            if c.selection.orange_id(i, j) != None :
                 x=i*cellw
                 y=j*cellh
                 box=(x, y, x+cellw, y+cellh)
-                if counter%2==0:
+                #one is even and the other is not
+                if (i%2==0 and j%2!=0) or (i%2!=0 and j%2==0):
                     image.paste( make_red( image.crop(box) ), box )
-            
-            counter+=1
-            
-        if (matrix.height%2)==0: counter+=1
-            
     return image
 
 def crop(image):
-    
     return image.crop((0,0, 600, 400))
-
-def grey_select2(image, matrix):
-    cellw= matrix.cellw
-    cellh= matrix.cellh
-
-    for i in range(matrix.width):
-        for j in range(matrix.height):
-            
-            if matrix.retrieve(i,j)==1:
-                x=i*cellw
-                y=j*cellh
-                box=(x, y, x+cellw, y+cellh)
-                image.paste(image.crop(box).convert(mode='L'), box)
-    return image
-
-def stain_all(image, matrix):
-    cellw= matrix.cellw
-    cellh= matrix.cellh
-
-    for i in range(matrix.width):
-        for j in range(matrix.height):
-            
-            if matrix.retrieve(i,j)!=1:
-                x=i*cellw
-                y=j*cellh
-                box=(x, y, x+cellw, y+cellh)
-                image.paste(stain_orange(image.crop(box)), box)
-    return image
-
-def select_stain(image, matrix):
-    cellw= matrix.cellw
-    cellh= matrix.cellh
-
-    for i in range(matrix.width):
-        for j in range(matrix.height):
-            
-            if matrix.retrieve(i,j)==1:
-                x=i*cellw
-                y=j*cellh
-                box=(x, y, x+cellw, y+cellh)
-                image.paste(stain_orange(image.crop(box)), box)
-    return image
-
 
 def make_red(image):
     imageR=image.getchannel(0)
-    imageN=imageR.point(lambda i: False and 0)
+    imageN=imageR.point(lambda i: False)
     return Image.merge(image.mode,[imageR,imageN,imageN] )
 
-def make_grey(image):
-    imageR=image.getchannel(2)
-    imageN=imageR.point(lambda i: False and 0)
-    return Image.merge(image.mode,[imageR,imageR,imageR] )
-def stain_orange(image):
-    image=image.convert(mode='L')
-    imageR=image.getchannel(0)
-    imageG=imageR.point(prop)
-    imageB=imageR.point(lambda i: False and 0)
-    
-    return Image.merge('RGB', [imageR, imageG, imageB])
-def prop(pixel):
-    return pixel*(128/255)
 
-def shuffle_alg(image, mtrx, var):
-    cellw=mtrx.cellw
-    cellh=mtrx.cellh
-    buff=matrix(image.size[0]//cellw, image.size[1]//cellh)
+def shuffle_alg(image, c, var):
+    cellw=c.cellw
+    cellh=c.cellh
+    selected_cells={}
     
-    for j in range(buff.width):
-        for i in range(buff.height):
-            if mtrx.retrieve(j,i) == 1:
-                buff.write(j,i,
-                           image.crop((
-                               j*cellw, i*cellh,
-                               j*cellw+cellw, i*cellh+cellh
-                               ))
-                           )
-    for j in range(buff.width):
-        for i in range(buff.height):
-            if buff.retrieve(j,i)!=0:
-                n1=randint(-var, var)
-                n2=randint(-var, var)
-                image.paste(buff.retrieve(j,i),
-                            ((j+n1)*cellw,
-                             (i+n2)*cellh
-                             )
-                            )
+    for i in range(c.selection.left, c.selection.right+1):
+        for j in range(c.selection.top, c.selection.bottom+1):
+            if c.selection.orange_id(i,j) != None:
+                selected_cells[(i,j)]=image.crop((j*cellw,
+                                i*cellh,
+                                j*cellw+cellw, i*cellh+cellh
+                                ))
+    
+    for pos in selected_cells.keys():
+        x=pos[0]
+        y=pos[1]
+        n1=randint(-var, var)
+        n2=randint(-var, var)
+        image.paste(selected_cells[pos],
+            ((x+n1)*cellw,
+            (y+n2)*cellh)
+            )
     return image
 
-def shuffle_2(image, mtrx, var):
-    cwidth=mtrx.cellw
-    cheight=mtrx.cellh
+def shuffle_alg2(image, canvgrid, var):
+    cwidth=canvgrid.cellw
+    cheight=canvgrid.cellh
 
-    for j in range(mtrx.gwidth-1):
-        for i in range(mtrx.gheight-1):
-            if mtrx.retrieve(j,i)==1:
+    for i in range(canvgrid.selection.left, canvgrid.selection.right+1):
+        for j in range(canvgrid.selection.top, canvgrid.selection.bottom+1):
+            if canvgrid.selection.orange_id(i,j) != None:
                 c=0
                 while True:
                     xguy=randint(abs(j-var),j+var)
                     yguy=randint(abs(i-var), i+var)
-                    if mtrx.retrieve(xguy,yguy)==1 and (xguy+1)*cwidth<=image.size[0] and (yguy+1)*cheight<=image.size[1]: break
+                    if (canvgrid.selection.orange_id(xguy, yguy) != None and
+                    (xguy+1)*cwidth<=image.size[0] and
+                    (yguy+1)*cheight<=image.size[1]):
+                        break
                     c+=1
                     if c>3:
                         xguy, yguy= j,i

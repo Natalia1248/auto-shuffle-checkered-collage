@@ -1,48 +1,19 @@
-class matrix:
+class Matrix:
 
     def __init__(self, width, height, fill=0):
 
-        self.j=[]
-        self.i=[]
         self.width=width
         self.height=height
-        for self.y in range(self.height):
-            self.j=[]
-            for self.x in range(self.width):
-                self.j.append(fill)
-                
-            self.i.append(self.j)
 
+        self.mat=[[fill for y in range(self.height)] for x in range(self.width)]
 
-                
 
     def retrieve(self, x, y):
-
-        return self.i[y][x]
+        return self.mat[x][y]
 
     def write(self, x, y, thing):
+        self.mat[x][y]=thing
         
-        self.i[y][x]=thing
-        #print(self.i[x][y])
-
-    def print(self):
-        
-        for self.y in range(self.height):
-            
-            for self.x in range(self.width-1):
-                print(self.i[self.y][self.x], end=" ")
-            
-            print(self.i[self.y][self.width-1])
             
     
 
-
-
-
-
-
-
-
-if __name__=="__main__":
-
-    pass

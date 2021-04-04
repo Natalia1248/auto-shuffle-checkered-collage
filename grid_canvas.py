@@ -1,151 +1,126 @@
-from matrix import matrix
+from matrix import Matrix
+from selection import Selection
 from tkinter import Canvas
 from copy import deepcopy
 from PIL import Image, ImageTk
 
 
-class grid_canvas(matrix, Canvas):
+class GridCanvas(Canvas):
 
     def __init__(self, master=None, cnf={}, **kw):
-        self.mymaster=master
         self.show_outline=False
-        self.outlined=[0,0]
-        self.n=0
-        self.cover=0
+        self.line_ids=[]
+        
+        #variable to communicate info between select_clicked and select_dragged, to avoid glitchy dragging
+        self.writing=0
 
+        #cell width, cell height
         self.cellw=50
         self.cellh=50
+        self.image_tkinter_id=None
+        self.selection=Selection()
 
         Canvas.__init__(self, master=master, cnf={}, **kw)
+        
+    def create_grid(self, image):
+        
+        
+        self.update_image(image)
 
-    def myupdate(self,image):
-        self.lastid=None
-        self.delete(self.lastid)
+    def update_image(self, image):
+        #takes an image, and replaces the previous image on display with it
+
+        #grid width, grid height
+        self.gwidth=(image.size[0]//self.cellw)+1
+        self.gheight=(image.size[1]//self.cellh)+1
+        self['scrollregion']=(0,0,image.size[0],image.size[1])
+                    
+        self.image=deepcopy(image)
+        self.delete(self.image_tkinter_id)
         self.config(width=image.size[0], height=image.size[1])
         image.convert(mode='1')
         self.tkimage=ImageTk.PhotoImage(image=image)
-        self.lastid=self.create_image(
+        self.image_tkinter_id=self.create_image(
                           0,0,
                           image=self.tkimage,
                           anchor='nw',
                           state='normal'
                           )
-        self.orange_ids= matrix(image.size[0], image.size[1])
-        self.update()
-        
-    def create_grid(self, image):
-        
-        self.gwidth=(image.size[0]//self.cellw)+1
-        self.gheight=(image.size[1]//self.cellh)+1
-        self['scrollregion']=(0,0,image.size[0],image.size[1])
-        super().__init__(
-            image.size[0],
-            image.size[1],
-            )
-        self.new_oranges=matrix(image.size[0],image.size[1])
-        for j in range(self.gwidth):
-            for i in range(self.gheight):
-                if j<self.new_oranges.width and i<self.new_oranges.height:
-                    self.new_oranges.write(j,i, self.orange_ids.retrieve(j,i))
-                    if self.orange_ids.retrieve(j,i)!=0:self.write(j,i,1)
-        self.orange_ids=self.new_oranges
-                    
-        self.update_image(image)
-
-    def update_image(self, img):
-        """update image with same size"""
-        self.image=deepcopy(img)
-        self.myupdate(self.image)
-        self.stain_select()
         self.update()
         
     def unselect_all(self):
-        self.delete('all')
-        for i in range(self.gwidth):
-            for j in range(self.gheight):
-                #print(i)
-                self.write_select(i,j, 0)
-        self.myupdate(self.image)
-        
-            
+        for id in self.selection.all_ids():
+            self.delete(id)
+        self.selection.remove_all()
+
     def select_all(self):
-        self.delete('all')
         for i in range(self.gwidth):
             for j in range(self.gheight):
-                self.write(i,j,1)
-        self.myupdate(self.image)
-        self.cover=self.create_rectangle(0,0, self.image.size[0], self.image.size[1], fill='orange', outline='', stipple='gray50')
+                if self.selection.orange_id(i,j)==None:
+                    self.selection.put_cell(i, j, self.make_orange_rect(i, j))
+    
+    def select_clicked(self, x,y):
+        cellid=self.selection.orange_id(x,y)
         
-
-    def write_select(self, x,y, value):
-        if value==1:
-            self.delete( self.orange_ids.retrieve(x,y) )
-            self.orange_ids.write(x,y,
-                                  self.create_rectangle(x*self.cellw, y*self.cellh,
-                                                     x*self.cellw+self.cellw, y*self.cellh+self.cellh,
-                                                     fill='orange',
-                                                     outline='',
-                                                     stipple='gray50')
-                                  )
+        if cellid == None:
+            self.writing=1
+            self.selection.put_cell(x,y,self.make_orange_rect(x,y))
             
-        elif value==0:
-            self.delete( self.orange_ids.retrieve(x,y) )
-            self.orange_ids.write(x,y,0)
-        self.write(x,y, value)
-        
-    def stain_select(self):
-        if self.cover!=0: 
-            self.cover=self.create_rectangle(0,0, self.image.size[0], self.image.size[1], fill='orange', outline='', stipple='gray50')
-            return
-        for x in range(self.gwidth):
-            for y in range(self.gheight):
-                
-                    value=self.retrieve(x,y)
-                    
-                    if value==1:
-                        self.delete( self.orange_ids.retrieve(x,y) )
-                        self.orange_ids.write(x,y,
-                                              self.create_rectangle(x*self.cellw, y*self.cellh,
-                                              x*self.cellw+self.cellw, y*self.cellh+self.cellh,
-                                              fill='orange',
-                                              outline='',
-                                              stipple='gray50') )
-        
-                    elif value==0:
-                        self.delete( self.orange_ids.retrieve(x,y) )
-                        self.orange_ids.write(x,y,0)
+        else:
+            self.writing=0
+            self.delete( self.selection.orange_id(x,y) )
+            self.selection.remove_cell(x,y)
 
-    def resize_grid(self, cellw, cellh):
+    def select_dragged(self, x, y):
+        cellid=self.selection.orange_id(x,y)
+
+        if self.writing==1 and cellid==None:
+            self.selection.put_cell(x,y, self.make_orange_rect(x,y))
+                                  
+        elif self.writing==0:
+            self.delete( self.selection.orange_id(x,y) )
+            self.selection.remove_cell(x,y)
+    
+    def remake_orange_rectangles(self):
+        new_selection=Selection()
+        for x,y in self.selection.all_positions():
+            self.delete(self.selection.orange_id(x,y))
+            new_selection.put_cell(x, y, self.make_orange_rect(x,y))
+        self.selection=new_selection
+                    
+
+    def cell_size(self, cellw, cellh):
         self.cellw=cellw
         self.cellh=cellh
 
-        for j in range(self.gwidth):
-            for i in range(self.gheight):
-                self.delete( self.orange_ids.retrieve(j,i) )
-                self.orange_ids.write(j,i,0)
-                
         self.gwidth=(self.image.size[0]//cellw)+1
         self.gheight=(self.image.size[1]//cellh)+1
+    
 
-        self.stain_select()
-        self.update()
+    def update_grid_lines(self):
+        for id in self.line_ids:
+            self.delete(id)
+        self.line_ids=[]
 
-    def update(self):
-        for i in range(self.n):
-                self.delete(self.outlined[i])
-        if self.show_outline:
-            self.n=0
-            self.outs=[]
-            for x in range(self.gwidth):
-                for y in range(self.gheight):
-                    self.outs.append(self.create_rectangle(x*self.cellw, y*self.cellh,
-                                              x*self.cellw+self.cellw, y*self.cellh+self.cellh,
-                                              fill='',
-                                              outline='black',
-                                              ))
-                    self.n+=1
-            self.outlined=self.outs
-            
-            
+        if(self.show_outline):
+            width=self.image.size[0]
+            height=self.image.size[1]
 
-        Canvas.update(self)
+            for i in range(0, width, self.cellw):
+                self.line_ids.append(
+                    self.create_line(i, 0, i, height)
+                )
+            for j in range(0, height, self.cellh):
+                self.line_ids.append(
+                    self.create_line(0, j, width, j)
+                )
+        
+    def make_orange_rect(self, x, y):
+        return self.create_rectangle(x*self.cellw, y*self.cellh,
+                                                x*self.cellw+self.cellw, y*self.cellh+self.cellh,
+                                                fill='orange',
+                                                outline='',
+                                                stipple='gray50')
+
+
+

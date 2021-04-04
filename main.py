@@ -131,7 +131,7 @@ chk_btn=tk.Checkbutton(s_frm, text='get square cells', command=check, variable=o
 chk_btn.grid(row=2, column=0)
 
 
-g_btn=tk.Checkbutton(window, text='show grid', command=lines)
+g_btn=tk.Checkbutton(window, text='show grid', command=lines_checkbox)
 g_btn.grid(row=1, column=2, padx=10, sticky='sw')
 
 c.bind("<B1-Motion>", canvas_drag)
