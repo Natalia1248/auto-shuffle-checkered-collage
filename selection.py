@@ -26,7 +26,28 @@ class Selection:
     def remove_cell(self, x, y):
         if (x,y) in self.orange_ids.keys():
             self.orange_ids.pop((x,y))
+
+            if len(self.orange_ids)>0:
+                xpositions=list(map( lambda k: k[0], self.orange_ids.keys()))
+                ypositions=list(map( lambda k: k[1], self.orange_ids.keys()))
+
+                minx=min(xpositions)
+                maxx=max(xpositions)
+                miny=min(ypositions)
+                maxy=max(ypositions)
+                
+                if maxx<self.right:
+                    self.right=maxx
+                if minx>self.left:
+                    self.left=minx
+                if maxy<self.bottom:
+                    self.bottom=maxy
+                if miny>self.top:
+                    self.top=miny
+                
+                print(miny)
     
+
     def orange_id(self, x, y):
         if (x,y) in self.orange_ids.keys():
             return self.orange_ids[(x,y)]
@@ -46,7 +67,7 @@ class Selection:
             locs=list(self.orange_ids.keys())
             return (locs[0], locs[1])
         else:
-            return (0,0)
+            return ((0,0),(0,0))
 
     def modify_cell(self, x, y, value):
         self.orange_ids[(x,y)]=value

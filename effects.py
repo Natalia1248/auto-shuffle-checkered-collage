@@ -1,5 +1,4 @@
 from PIL import Image
-from matrix import Matrix
 from random import randint
 
 def to_red(image, c):
@@ -42,12 +41,12 @@ def shuffle_alg(image, c, var):
     cellh=c.cellh
     selected_cells={}
     
-    for i in range(c.selection.left, c.selection.right+1):
-        for j in range(c.selection.top, c.selection.bottom+1):
-            if c.selection.orange_id(i,j) != None:
-                selected_cells[(i,j)]=image.crop((j*cellw,
-                                i*cellh,
-                                j*cellw+cellw, i*cellh+cellh
+    for x in range(c.selection.left, c.selection.right+1):
+        for y in range(c.selection.top, c.selection.bottom+1):
+            if c.selection.orange_id(x,y) != None:
+                selected_cells[(x,y)]=image.crop((x*cellw,
+                                y*cellh,
+                                x*cellw+cellw, y*cellh+cellh
                                 ))
     
     for pos in selected_cells.keys():
@@ -65,24 +64,25 @@ def shuffle_alg2(image, canvgrid, var):
     cwidth=canvgrid.cellw
     cheight=canvgrid.cellh
 
-    for i in range(canvgrid.selection.left, canvgrid.selection.right+1):
-        for j in range(canvgrid.selection.top, canvgrid.selection.bottom+1):
-            if canvgrid.selection.orange_id(i,j) != None:
+    for x in range(canvgrid.selection.left, canvgrid.selection.right+1):
+        for y in range(canvgrid.selection.top, canvgrid.selection.bottom+1):
+            if canvgrid.selection.orange_id(x,y) != None:
                 c=0
-                while True:
-                    xguy=randint(abs(j-var),j+var)
-                    yguy=randint(abs(i-var), i+var)
-                    if (canvgrid.selection.orange_id(xguy, yguy) != None and
-                    (xguy+1)*cwidth<=image.size[0] and
-                    (yguy+1)*cheight<=image.size[1]):
+                while c<3:
+                    xguy=randint(x-var,x+var)
+                    yguy=randint(y-var, y+var)
+
+                    if (canvgrid.selection.orange_id(xguy, yguy) != None):
+                        print('aa')
                         break
+
                     c+=1
-                    if c>3:
-                        xguy, yguy= j,i
-                        break
-                ibox=(j*cwidth,i*cheight, (j+1)*cwidth,(i+1)*cheight,)
-                guybox=(xguy*cwidth,yguy*cheight, (xguy+1)*cwidth,(yguy+1)*cheight,)
-                image=swap(image,ibox, guybox)
+                    
+                if c<3:
+                    print('bb')
+                    ibox=(x*cwidth,y*cheight, (x+1)*cwidth,(y+1)*cheight,)
+                    guybox=(xguy*cwidth,yguy*cheight, (xguy+1)*cwidth,(yguy+1)*cheight,)
+                    image=swap(image,ibox, guybox)
                 
     return image
 

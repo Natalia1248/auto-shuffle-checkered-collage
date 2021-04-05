@@ -84,16 +84,19 @@ def crop_even(img):
                           img.size[0]-xtrim-addx,
                           img.size[1]-ytrim-addy)
         )
-    c['scrollregion']=(0,0, cropped.size[0], cropped.size[1])
     return cropped
 
 def undo(event=None):
     history.undo()
     c.update_image(history.current())
+    c.remake_orange_rectangles()
+    c.update_grid_lines()
 
 def redo(event=None):
     history.redo()
-    c.update_image(history.get_current())
+    c.update_image(history.current())
+    c.remake_orange_rectangles()
+    c.update_grid_lines()
 
 @pushes_new_image
 def original(img):
@@ -185,30 +188,6 @@ def canvas_drag(event):
     c.select_dragged(x,y)
 
 
-def clear(event):
-    rectid= c.create_rectangle(0,0,
-                                   history.current().size[0],
-                                   history.current().size[1],
-                                   fill='green', stipple='gray25'
-                               )
-    c.unselect_all()
-    c.cover=0
-    c.delete(rectid)
-    
-
-def selal(event):
-    
-    rectid= c.create_rectangle(0,0,
-                                   history.current().size[0],
-                                   history.current().size[1],
-                                   fill='green', stipple='gray25'
-                               )
-    
-    c.select_all()
-
-    c.delete(rectid)
-    
-
 aux=1
 def width_slide(event):
     global aux
@@ -255,21 +234,23 @@ def entpress(event):
                 wval.set(int(hstr.get()))
                 wstr.set(hstr.get())
         c.cell_size(wval.get(), hval.get())
-        if c.cover!=0: 
-                selal()
+        c.update_grid_lines()
+        c.remake_orange_rectangles()
     
 square_checked=False
 def check(event=None):
     global square_checked, aux
-    square_checked=not square_checked
-    if square_checked:
-        lesser=min(hval.get(), wval.get())
-        hval.set(lesser)
-        wval.set(lesser)
-        wstr.set(lesser)
-        hstr.set(lesser)
-        #aux=2
-    c.cell_size(hval.get(),wval.get())
+    if c.image_tkinter_id!=None:
+        square_checked=not square_checked
+        if square_checked:
+            lesser=min(hval.get(), wval.get())
+            hval.set(lesser)
+            wval.set(lesser)
+            wstr.set(lesser)
+            hstr.set(lesser)
+            #aux=2
+        c.cell_size(hval.get(),wval.get())
+        c.update_grid_lines()
 
 def saves(event=None):
     extensions=[('Png','*.png'),
@@ -303,9 +284,9 @@ def openim(event=None):
         im=Image.open(fileobj.name)
     except: 
         return
-    
-    c['scrollregion']=(0,0, im.size[0], im.size[1])
+
     c.update_image(im)
+
     hlen=2*im.size[1]//3
     if hlen>650:   hlen=650
     
@@ -323,6 +304,8 @@ def openim(event=None):
     width_sldr.set(50)
         
     history.push(im)
+
+    print('TERMINÉ')
 
 
 show_lines=False

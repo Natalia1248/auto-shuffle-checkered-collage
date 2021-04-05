@@ -1,4 +1,3 @@
-from matrix import Matrix
 from selection import Selection
 from tkinter import Canvas
 from copy import deepcopy
@@ -22,24 +21,30 @@ class GridCanvas(Canvas):
 
         Canvas.__init__(self, master=master, cnf={}, **kw)
         
-    def create_grid(self, image):
-        
-        
-        self.update_image(image)
 
     def update_image(self, image):
         #takes an image, and replaces the previous image on display with it
 
+        #contemplate shrinking
+        
+
         #grid width, grid height
-        self.gwidth=(image.size[0]//self.cellw)+1
-        self.gheight=(image.size[1]//self.cellh)+1
+        if image.size[0]%self.cellw!=0:
+            self.gwidth=(image.size[0]//self.cellw)+1
+        else:
+            self.gwidth=(image.size[0]//self.cellw)
+        if image.size[0]%self.cellw!=0:
+            self.gheight=(image.size[1]//self.cellh)+1
+        else:
+            self.gheight=(image.size[1]//self.cellh)
+
         self['scrollregion']=(0,0,image.size[0],image.size[1])
-                    
         self.image=deepcopy(image)
         self.delete(self.image_tkinter_id)
         self.config(width=image.size[0], height=image.size[1])
         image.convert(mode='1')
         self.tkimage=ImageTk.PhotoImage(image=image)
+        self.delete('all')
         self.image_tkinter_id=self.create_image(
                           0,0,
                           image=self.tkimage,
