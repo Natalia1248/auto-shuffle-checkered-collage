@@ -1,7 +1,6 @@
 from copy import deepcopy
 from tkinter import filedialog
 import tkinter as tk
-from functools import wraps
 from history import History
 
 
@@ -12,6 +11,12 @@ from effects import to_red_checkers, to_red, crop, shuffle_alg, shuffle_alg2
 
 
 history=History(5)
+
+got_started=False
+effects_frm=None
+height_sldr=None
+width_sldr=None
+aux=1
 
 def pushes_new_image(func):
     def inn(event=None):
@@ -31,39 +36,44 @@ def pushes_new_image(func):
         
     return inn
 
-def cleans_up(funct):
-    @wraps(funct)
+def cleans_up(func):
     def inn(event=None):
         cleanup()
-        funct()
+        func(event)
     return inn
 
+def not_first(func):
+    def inner(event=None):
+        if got_started:
+            func(event)
+    return inner
+
+def cleanup(event=None):
+    global effects_frm
+    if effects_frm != None:
+        effects_frm.destroy()
+        #the previous frame will be garbage collected
+        effects_frm=None
+
+@not_first
 @cleans_up
 @pushes_new_image
 def function1(img):
     return to_red_checkers(img, c)
 
+@not_first
 @cleans_up
 @pushes_new_image
 def function2(img):
     return to_red(img, c)
 
+@not_first
 @cleans_up
 @pushes_new_image
 def restart(img):
     return Image.open(imagepath)
 
-@cleans_up
-@pushes_new_image
-def cropimage(img):
-    xtrim=img.size[0]%c.cellw
-    ytrim=img.size[1]%c.cellh
-    cropped= img.crop((0,0,
-                          img.size[0]-xtrim,
-                          img.size[1]-ytrim)
-        )
-    return cropped
-
+@not_first
 @cleans_up
 @pushes_new_image
 def crop_even(img):
@@ -85,18 +95,7 @@ def crop_even(img):
         )
     return cropped
 
-def undo(event=None):
-    history.undo()
-    c.update_image(history.current())
-    c.remake_orange_rectangles()
-    c.update_grid_lines()
-
-def redo(event=None):
-    history.redo()
-    c.update_image(history.current())
-    c.remake_orange_rectangles()
-    c.update_grid_lines()
-
+@not_first
 @pushes_new_image
 def original(img):
     orig=Image.open(imagepath)
@@ -107,7 +106,7 @@ def original(img):
 
     return img
 
-effects_frm=None
+@not_first
 @cleans_up
 def shuffle(event=None):
     global effects_frm 
@@ -130,7 +129,7 @@ def shuffle(event=None):
     
         button.pack(anchor='center')
 
-
+@not_first
 @cleans_up
 def shuffle2(event=None):
     global effects_frm, did 
@@ -155,6 +154,7 @@ def shuffle2(event=None):
         button.pack(anchor='center')
         did=True
 
+@not_first
 @cleans_up
 @pushes_new_image
 def swapb(buff):
@@ -172,13 +172,15 @@ def swapb(buff):
                 cell2[0]*c.cellw+c.cellw,cell2[1]*c.cellh+c.cellh))
     return buff
 
+@not_first
 def canvas_click(event):
     x=int(c.canvasx(event.x)//c.cellw)
     y=int(c.canvasy(event.y)//c.cellh)
     if x>c.image.size[0] or y>c.image.size[1] or x<0 or y<0:
         return
     c.select_clicked(x,y)
-    
+
+@not_first
 def canvas_drag(event):
     x=int(c.canvasx(event.x)//c.cellw)
     y=int(c.canvasy(event.y)//c.cellh)
@@ -186,8 +188,20 @@ def canvas_drag(event):
         return
     c.select_dragged(x,y)
 
+@not_first
+def undo(event=None):
+    history.undo()
+    c.update_image(history.current())
+    c.remake_orange_rectangles()
+    c.update_grid_lines()
 
-aux=1
+@not_first
+def redo(event=None):
+    history.redo()
+    c.update_image(history.current())
+    c.remake_orange_rectangles()
+    c.update_grid_lines()
+
 def width_slide(event):
     global aux
     
@@ -218,7 +232,7 @@ def height_slide(event):
     c.remake_orange_rectangles()
     c.update_grid_lines()
 
-
+@not_first
 def entpress(event):
     if not (int(wstr.get())==1 or int(hstr.get())==1):
         
@@ -250,6 +264,14 @@ def check(event=None):
         c.cell_size(hval.get(),wval.get())
         c.update_grid_lines()
 
+show_lines=False
+def lines_checkbox():
+    global show_lines
+    c.show_outline= not show_lines
+    show_lines=not show_lines
+    c.update_grid_lines()
+
+@not_first
 def saves(event=None):
     extensions=[('Png','*.png'),
                 ('Jpg','*.jpg'),
@@ -260,20 +282,9 @@ def saves(event=None):
         if fileobj.name!=None: history.current().save(fileobj.name)
     except Exception as e:
         print(e)
-
-
-def cleanup(event=None):
-    global effects_frm
-    if effects_frm != None:
-        effects_frm.destroy()
-        #the previous frame will be garbage collected
-        effects_frm=None
     
-    
-height_sldr=None
-width_sldr=None
 def openim(event=None):
-    global imagepath, height_sldr, width_sldr, aux
+    global imagepath, height_sldr, width_sldr, aux, got_started
     aux=1
     
     try:
@@ -303,15 +314,10 @@ def openim(event=None):
         
     history.push(im)
 
-    print('TERMINÉ')
+    got_started=True
 
 
-show_lines=False
-def lines_checkbox():
-    global show_lines
-    c.show_outline= not show_lines
-    show_lines=not show_lines
-    c.update_grid_lines()
+
 
 
         
