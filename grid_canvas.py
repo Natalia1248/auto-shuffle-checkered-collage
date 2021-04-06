@@ -16,6 +16,7 @@ class GridCanvas(Canvas):
         #cell width, cell height
         self.cellw=50
         self.cellh=50
+
         self.image_tkinter_id=None
         self.selection=Selection()
 
@@ -24,9 +25,6 @@ class GridCanvas(Canvas):
 
     def update_image(self, image):
         #takes an image, and replaces the previous image on display with it
-
-        #contemplate shrinking
-        
 
         #grid width, grid height
         if image.size[0]%self.cellw!=0:
@@ -37,6 +35,20 @@ class GridCanvas(Canvas):
             self.gheight=(image.size[1]//self.cellh)+1
         else:
             self.gheight=(image.size[1]//self.cellh)
+
+        #contemplate shrinking in the light of our selection
+        if hasattr(self, 'image') and self.selection.length()>0:
+            old_max_x=self.selection.max_x()
+            print(self.gheight, self.selection.max_y()+1, self.selection.max_x()+1)
+            if(self.image.size[0]>image.size[0]):
+                for i in range(self.gwidth, self.selection.max_x()+1):
+                    for j in range(self.selection.max_y()+1):
+                        self.selection.remove_cell(i, j)
+            if(self.image.size[1]>image.size[1]):
+                for j in range(self.gheight, self.selection.max_y()+1):
+                    for i in range(old_max_x+1):
+                        print('al menos ahre', i, j)
+                        self.selection.remove_cell(i, j)
 
         self['scrollregion']=(0,0,image.size[0],image.size[1])
         self.image=deepcopy(image)
@@ -51,6 +63,7 @@ class GridCanvas(Canvas):
                           anchor='nw',
                           state='normal'
                           )
+        
         self.update()
         
     def unselect_all(self):
@@ -61,36 +74,36 @@ class GridCanvas(Canvas):
     def select_all(self):
         for i in range(self.gwidth):
             for j in range(self.gheight):
-                if self.selection.orange_id(i,j)==None:
-                    self.selection.put_cell(i, j, self.make_orange_rect(i, j))
+                if self.selection.position_id(i,j)==None:
+                    self.selection.put_cell(i, j, self._make_orange_rect(i, j))
     
     def select_clicked(self, x,y):
-        cellid=self.selection.orange_id(x,y)
+        cellid=self.selection.position_id(x,y)
         
         if cellid == None:
             self.writing=1
-            self.selection.put_cell(x,y,self.make_orange_rect(x,y))
+            self.selection.put_cell(x,y,self._make_orange_rect(x,y))
             
         else:
             self.writing=0
-            self.delete( self.selection.orange_id(x,y) )
+            self.delete( self.selection.position_id(x,y) )
             self.selection.remove_cell(x,y)
 
     def select_dragged(self, x, y):
-        cellid=self.selection.orange_id(x,y)
+        cellid=self.selection.position_id(x,y)
 
         if self.writing==1 and cellid==None:
-            self.selection.put_cell(x,y, self.make_orange_rect(x,y))
+            self.selection.put_cell(x,y, self._make_orange_rect(x,y))
                                   
         elif self.writing==0:
-            self.delete( self.selection.orange_id(x,y) )
+            self.delete( self.selection.position_id(x,y) )
             self.selection.remove_cell(x,y)
     
     def remake_orange_rectangles(self):
         new_selection=Selection()
         for x,y in self.selection.all_positions():
-            self.delete(self.selection.orange_id(x,y))
-            new_selection.put_cell(x, y, self.make_orange_rect(x,y))
+            self.delete(self.selection.position_id(x,y))
+            new_selection.put_cell(x, y, self._make_orange_rect(x,y))
         self.selection=new_selection
                     
 
@@ -120,7 +133,7 @@ class GridCanvas(Canvas):
                     self.create_line(0, j, width, j)
                 )
         
-    def make_orange_rect(self, x, y):
+    def _make_orange_rect(self, x, y):
         return self.create_rectangle(x*self.cellw, y*self.cellh,
                                                 x*self.cellw+self.cellw, y*self.cellh+self.cellh,
                                                 fill='orange',

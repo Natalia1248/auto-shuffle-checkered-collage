@@ -11,9 +11,8 @@ from config import *
 from effects import to_red_checkers, to_red, crop, shuffle_alg, shuffle_alg2
 
 
-history=History(3)
+history=History(5)
 
-#NOT FOR RESIZES
 def pushes_new_image(func):
     def inn(event=None):
 
@@ -239,7 +238,7 @@ def entpress(event):
     
 square_checked=False
 def check(event=None):
-    global square_checked, aux
+    global square_checked
     if c.image_tkinter_id!=None:
         square_checked=not square_checked
         if square_checked:
@@ -248,7 +247,6 @@ def check(event=None):
             wval.set(lesser)
             wstr.set(lesser)
             hstr.set(lesser)
-            #aux=2
         c.cell_size(hval.get(),wval.get())
         c.update_grid_lines()
 

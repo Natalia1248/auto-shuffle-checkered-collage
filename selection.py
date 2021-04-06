@@ -27,6 +27,8 @@ class Selection:
         if (x,y) in self.orange_ids.keys():
             self.orange_ids.pop((x,y))
 
+            #update selection box, inneficient if we wanna delete a lot of cells in bulk.
+            #note: create specialized methods for that if final usage requires
             if len(self.orange_ids)>0:
                 xpositions=list(map( lambda k: k[0], self.orange_ids.keys()))
                 ypositions=list(map( lambda k: k[1], self.orange_ids.keys()))
@@ -44,11 +46,8 @@ class Selection:
                     self.bottom=maxy
                 if miny>self.top:
                     self.top=miny
-                
-                print(miny)
-    
-
-    def orange_id(self, x, y):
+                    
+    def position_id(self, x, y):
         if (x,y) in self.orange_ids.keys():
             return self.orange_ids[(x,y)]
         else:
@@ -74,3 +73,11 @@ class Selection:
     
     def remove_all(self):
         self.orange_ids.clear()
+    
+    def max_x(self):
+        xpositions=list(map( lambda k: k[0], self.orange_ids.keys()))
+        return max(xpositions)
+    def max_y(self):
+        ypositions=list(map( lambda k: k[1], self.orange_ids.keys()))
+        return max(ypositions)
+

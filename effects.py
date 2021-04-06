@@ -18,7 +18,7 @@ def to_red_checkers(image, c):
     for i in range(c.selection.left, c.selection.right+1):
         for j in range(c.selection.top, c.selection.bottom+1):
             
-            if c.selection.orange_id(i, j) != None :
+            if c.selection.position_id(i, j) != None :
                 x=i*cellw
                 y=j*cellh
                 box=(x, y, x+cellw, y+cellh)
@@ -40,10 +40,9 @@ def shuffle_alg(image, c, var):
     cellw=c.cellw
     cellh=c.cellh
     selected_cells={}
-    
     for x in range(c.selection.left, c.selection.right+1):
         for y in range(c.selection.top, c.selection.bottom+1):
-            if c.selection.orange_id(x,y) != None:
+            if c.selection.position_id(x,y) != None:
                 selected_cells[(x,y)]=image.crop((x*cellw,
                                 y*cellh,
                                 x*cellw+cellw, y*cellh+cellh
@@ -66,20 +65,18 @@ def shuffle_alg2(image, canvgrid, var):
 
     for x in range(canvgrid.selection.left, canvgrid.selection.right+1):
         for y in range(canvgrid.selection.top, canvgrid.selection.bottom+1):
-            if canvgrid.selection.orange_id(x,y) != None:
+            if canvgrid.selection.position_id(x,y) != None:
                 c=0
                 while c<3:
                     xguy=randint(x-var,x+var)
                     yguy=randint(y-var, y+var)
 
-                    if (canvgrid.selection.orange_id(xguy, yguy) != None):
-                        print('aa')
+                    if (canvgrid.selection.position_id(xguy, yguy) != None):
                         break
 
                     c+=1
                     
                 if c<3:
-                    print('bb')
                     ibox=(x*cwidth,y*cheight, (x+1)*cwidth,(y+1)*cheight,)
                     guybox=(xguy*cwidth,yguy*cheight, (xguy+1)*cwidth,(yguy+1)*cheight,)
                     image=swap(image,ibox, guybox)
