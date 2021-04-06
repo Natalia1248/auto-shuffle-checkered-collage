@@ -39,7 +39,6 @@ class GridCanvas(Canvas):
         #contemplate shrinking in the light of our selection
         if hasattr(self, 'image') and self.selection.length()>0:
             old_max_x=self.selection.max_x()
-            print(self.gheight, self.selection.max_y()+1, self.selection.max_x()+1)
             if(self.image.size[0]>image.size[0]):
                 for i in range(self.gwidth, self.selection.max_x()+1):
                     for j in range(self.selection.max_y()+1):
@@ -47,7 +46,6 @@ class GridCanvas(Canvas):
             if(self.image.size[1]>image.size[1]):
                 for j in range(self.gheight, self.selection.max_y()+1):
                     for i in range(old_max_x+1):
-                        print('al menos ahre', i, j)
                         self.selection.remove_cell(i, j)
 
         self['scrollregion']=(0,0,image.size[0],image.size[1])
