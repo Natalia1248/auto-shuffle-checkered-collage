@@ -10,7 +10,7 @@ from config import *
 from effects import to_red_checkers, to_red, crop, shuffle_alg, shuffle_alg2
 
 
-history=History(5)
+history=History(30)
 
 got_started=False
 effects_frm=None
