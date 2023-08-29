@@ -147,7 +147,7 @@ class GridCanvas(Canvas):
 
     def not_first(self, func):
         def inner(event=None):
-            if self.image:
+            if self.image_tkinter_id:
                 func(event)
 
         return inner
