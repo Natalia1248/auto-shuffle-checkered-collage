@@ -3,47 +3,28 @@ import tkinter as tk
 
 from config import *
 from effects import to_red_checkers, to_red, shuffle_alg, shuffle_alg2
-effects_frm = None
+
 height_sldr = None
 width_sldr = None
 aux = 1
 
-
-def cleans_up(func):
-    def inn(event=None):
-        cleanup()
-        func(event)
-
-    return inn
-
-def cleanup(event=None):
-    global effects_frm
-    if effects_frm != None:
-        effects_frm.destroy()
-        # the previous frame will be garbage collected
-        effects_frm = None
-
 @c.not_first
-@cleans_up
 @c.canvas_effect_handler
 def function1(img, grid_canvas):
     return to_red_checkers(img, grid_canvas)
 
 @c.not_first
-@cleans_up
 @c.canvas_effect_handler
 def function2(img, grid_canvas):
     return to_red(img, grid_canvas)
 
 @c.not_first
-@cleans_up
 @c.canvas_effect_handler
 def restart(img, grid_canvas):
     return Image.open(imagepath)
 
 
 @c.not_first
-@cleans_up
 @c.canvas_effect_handler
 def crop_even(img, grid_canvas):
     if (img.size[0] % grid_canvas.cellw) % 2 == 0:
@@ -81,9 +62,7 @@ def original(img, grid_canvas):
 
 
 @c.not_first
-@cleans_up
 def shuffle(event=None):
-    global effects_frm
 
     @c.canvas_effect_handler
     def com(buff, grid_canvas):
@@ -93,21 +72,18 @@ def shuffle(event=None):
             var = 0
         return shuffle_alg(buff, grid_canvas, var)
 
-    if effects_frm == None:
-        effects_frm = tk.Frame(master=window)
-        effects_frm["bg"] = "purple"
-        effects_frm.grid(row=3, column=3, sticky="w", pady=10)
-        button = tk.Button(master=effects_frm, command=com, text="Go!")
-        entry = tk.Entry(master=effects_frm)
-        entry.pack()
+    effects_frm = tk.Frame(master=window, name='effect_input')
+    effects_frm["bg"] = "purple"
+    effects_frm.grid(row=3, column=3, sticky="w", pady=10)
+    button = tk.Button(master=effects_frm, command=com, text="Go!")
+    entry = tk.Entry(master=effects_frm)
+    entry.pack()
 
-        button.pack(anchor="center")
+    button.pack(anchor="center")
 
 
 @c.not_first
-@cleans_up
 def shuffle2(event=None):
-    global effects_frm, did
 
     @c.canvas_effect_handler
     def com(buff, grid_canvas):
@@ -117,20 +93,17 @@ def shuffle2(event=None):
             var = 0
         return shuffle_alg2(buff, grid_canvas, var)
 
-    if effects_frm == None:
-        effects_frm = tk.Frame(master=window)
-        effects_frm["bg"] = "purple"
-        effects_frm.grid(row=3, column=3, sticky="w", pady=10)
-        button = tk.Button(master=effects_frm, command=com, text="Go!")
-        entry = tk.Entry(master=effects_frm)
-        entry.pack()
+    effects_frm = tk.Frame(master=window, name='effect_input')
+    effects_frm["bg"] = "purple"
+    effects_frm.grid(row=3, column=3, sticky="w", pady=10)
+    button = tk.Button(master=effects_frm, command=com, text="Go!")
+    entry = tk.Entry(master=effects_frm)
+    entry.pack()
 
-        button.pack(anchor="center")
-        did = True
+    button.pack(anchor="center")
 
 
 @c.not_first
-@cleans_up
 @c.canvas_effect_handler
 def swapb(buff, grid_canvas):
     cell1, cell2 = grid_canvas.selection.first_two_selected()
@@ -358,3 +331,12 @@ def openim(event=None):
     c.history.push(im)
 
     got_started = True
+
+def generic_click(event=None):
+    
+    if ('effect_input' not in str(event.widget)):
+        try:
+            effect_input = window.nametowidget('effect_input')
+            effect_input.destroy()
+        except KeyError:
+            pass

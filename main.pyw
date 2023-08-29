@@ -8,6 +8,7 @@ window.grid_columnconfigure(3, weight=1, minsize=610)
 window.grid_rowconfigure(1, weight=1, minsize=15)
 window.grid_rowconfigure(2, weight=1)
 window.grid_rowconfigure(3, weight=1)
+window.bind("<Button-1>", generic_click)
 
 
 l_frm.grid(row=0, column=1, pady=3, sticky="w")
