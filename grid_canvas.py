@@ -1,7 +1,8 @@
-from selection import Selection
 from tkinter import Canvas
 from copy import deepcopy
 from PIL import ImageTk
+from selection import Selection
+from history import History
 
 
 class GridCanvas(Canvas):
@@ -18,6 +19,8 @@ class GridCanvas(Canvas):
 
         self.image_tkinter_id = None
         self.selection = Selection()
+
+        self.history = History(30)
 
         Canvas.__init__(self, master=master, **kw)
 
@@ -120,6 +123,34 @@ class GridCanvas(Canvas):
             for j in range(0, height, self.cellh):
                 self.line_ids.append(self.create_line(0, j, width, j))
 
+    def canvas_effect_handler(self, func):
+        def handler(_event=None):
+            self.create_rectangle(
+                0,
+                0,
+                self.history.current().size[0],
+                self.history.current().size[1],
+                fill="green",
+                stipple="gray25",
+            )
+            self.update()
+            new_image = func(deepcopy(self.history.current()), self)
+            self.delete("all")
+            self.history.push(new_image)
+
+            self.update_image(new_image)
+            self.remake_orange_rectangles()
+            self.update_grid_lines()
+
+        return handler
+
+
+    def not_first(self, func):
+        def inner(event=None):
+            if self.image:
+                func(event)
+
+        return inner
     def _make_orange_rect(self, x, y):
         return self.create_rectangle(
             x * self.cellw,

@@ -1,44 +1,12 @@
-from copy import deepcopy
 from tkinter import filedialog
 import tkinter as tk
-from history import History
-
-
-import PIL
 
 from config import *
-from effects import to_red_checkers, to_red, crop, shuffle_alg, shuffle_alg2
-
-
-history = History(30)
-
-got_started = False
+from effects import to_red_checkers, to_red, shuffle_alg, shuffle_alg2
 effects_frm = None
 height_sldr = None
 width_sldr = None
 aux = 1
-
-
-def pushes_new_image(func):
-    def inn(event=None):
-        rectid = c.create_rectangle(
-            0,
-            0,
-            history.current().size[0],
-            history.current().size[1],
-            fill="green",
-            stipple="gray25",
-        )
-        c.update()
-        new_image = func(deepcopy(history.current()))
-        c.delete("all")
-        history.push(new_image)
-
-        c.update_image(new_image)
-        c.remake_orange_rectangles()
-        c.update_grid_lines()
-
-    return inn
 
 
 def cleans_up(func):
@@ -48,15 +16,6 @@ def cleans_up(func):
 
     return inn
 
-
-def not_first(func):
-    def inner(event=None):
-        if got_started:
-            func(event)
-
-    return inner
-
-
 def cleanup(event=None):
     global effects_frm
     if effects_frm != None:
@@ -64,43 +23,40 @@ def cleanup(event=None):
         # the previous frame will be garbage collected
         effects_frm = None
 
-
-@not_first
+@c.not_first
 @cleans_up
-@pushes_new_image
-def function1(img):
-    return to_red_checkers(img, c)
+@c.canvas_effect_handler
+def function1(img, grid_canvas):
+    return to_red_checkers(img, grid_canvas)
 
-
-@not_first
+@c.not_first
 @cleans_up
-@pushes_new_image
-def function2(img):
-    return to_red(img, c)
+@c.canvas_effect_handler
+def function2(img, grid_canvas):
+    return to_red(img, grid_canvas)
 
-
-@not_first
+@c.not_first
 @cleans_up
-@pushes_new_image
-def restart(img):
+@c.canvas_effect_handler
+def restart(img, grid_canvas):
     return Image.open(imagepath)
 
 
-@not_first
+@c.not_first
 @cleans_up
-@pushes_new_image
-def crop_even(img):
-    if (img.size[0] % c.cellw) % 2 == 0:
-        xtrim = (img.size[0] % c.cellw) / 2
+@c.canvas_effect_handler
+def crop_even(img, grid_canvas):
+    if (img.size[0] % grid_canvas.cellw) % 2 == 0:
+        xtrim = (img.size[0] % grid_canvas.cellw) / 2
         addx = 0
     else:
-        xtrim = (img.size[0] % c.cellw) // 2
+        xtrim = (img.size[0] % grid_canvas.cellw) // 2
         addx = 1
     if (img.size[1] % c.cellh) % 2 == 0:
-        ytrim = (img.size[1] % c.cellh) / 2
+        ytrim = (img.size[1] % grid_canvas.cellh) / 2
         addy = 0
     else:
-        ytrim = (img.size[1] % c.cellw) // 2
+        ytrim = (img.size[1] % grid_canvas.cellw) // 2
         addy = 1
     cropped = img.crop(
         (xtrim, ytrim, img.size[0] - xtrim - addx, img.size[1] - ytrim - addy)
@@ -108,30 +64,34 @@ def crop_even(img):
     return cropped
 
 
-@not_first
-@pushes_new_image
-def original(img):
+@c.not_first
+@c.canvas_effect_handler
+def original(img, grid_canvas):
     orig = Image.open(imagepath)
 
-    for x, y in c.selection.all_positions():
-        box = (x * c.cellw, y * c.cellh, x * c.cellw + c.cellw, y * c.cellh + c.cellh)
+    for x, y in grid_canvas.selection.all_positions():
+        box = (
+            x * grid_canvas.cellw,
+            y * grid_canvas.cellh,
+            x * grid_canvas.cellw + grid_canvas.cellw,
+            y * grid_canvas.cellh + grid_canvas.cellh)
         img.paste(orig.crop(box), box)
 
     return img
 
 
-@not_first
+@c.not_first
 @cleans_up
 def shuffle(event=None):
     global effects_frm
 
-    @pushes_new_image
-    def com(buff):
+    @c.canvas_effect_handler
+    def com(buff, grid_canvas):
         try:
             var = int(entry.get())
         except:
             var = 0
-        return shuffle_alg(buff, c, var)
+        return shuffle_alg(buff, grid_canvas, var)
 
     if effects_frm == None:
         effects_frm = tk.Frame(master=window)
@@ -144,19 +104,18 @@ def shuffle(event=None):
         button.pack(anchor="center")
 
 
-@not_first
+@c.not_first
 @cleans_up
 def shuffle2(event=None):
     global effects_frm, did
 
-    @pushes_new_image
-    def com(buff):
+    @c.canvas_effect_handler
+    def com(buff, grid_canvas):
         try:
             var = int(entry.get())
-
         except:
             var = 0
-        return shuffle_alg2(buff, c, var)
+        return shuffle_alg2(buff, grid_canvas, var)
 
     if effects_frm == None:
         effects_frm = tk.Frame(master=window)
@@ -170,49 +129,49 @@ def shuffle2(event=None):
         did = True
 
 
-@not_first
+@c.not_first
 @cleans_up
-@pushes_new_image
-def swapb(buff):
-    cell1, cell2 = c.selection.first_two_selected()
+@c.canvas_effect_handler
+def swapb(buff, grid_canvas):
+    cell1, cell2 = grid_canvas.selection.first_two_selected()
 
     third = buff.crop(
         (
-            cell1[0] * c.cellw,
-            cell1[1] * c.cellh,
-            cell1[0] * c.cellw + c.cellw,
-            cell1[1] * c.cellh + c.cellh,
+            cell1[0] * grid_canvas.cellw,
+            cell1[1] * grid_canvas.cellh,
+            cell1[0] * grid_canvas.cellw + grid_canvas.cellw,
+            cell1[1] * grid_canvas.cellh + grid_canvas.cellh,
         )
     )
     buff.paste(
         buff.crop(
             (
-                cell2[0] * c.cellw,
-                cell2[1] * c.cellh,
-                cell2[0] * c.cellw + c.cellw,
-                cell2[1] * c.cellh + c.cellh,
+                cell2[0] * grid_canvas.cellw,
+                cell2[1] * grid_canvas.cellh,
+                cell2[0] * grid_canvas.cellw + grid_canvas.cellw,
+                cell2[1] * grid_canvas.cellh + grid_canvas.cellh,
             )
         ),
         (
-            cell1[0] * c.cellw,
-            cell1[1] * c.cellh,
-            cell1[0] * c.cellw + c.cellw,
-            cell1[1] * c.cellh + c.cellh,
+            cell1[0] * grid_canvas.cellw,
+            cell1[1] * grid_canvas.cellh,
+            cell1[0] * grid_canvas.cellw + grid_canvas.cellw,
+            cell1[1] * grid_canvas.cellh + grid_canvas.cellh,
         ),
     )
     buff.paste(
         third,
         (
-            cell2[0] * c.cellw,
-            cell2[1] * c.cellh,
-            cell2[0] * c.cellw + c.cellw,
-            cell2[1] * c.cellh + c.cellh,
+            cell2[0] * grid_canvas.cellw,
+            cell2[1] * grid_canvas.cellh,
+            cell2[0] * grid_canvas.cellw + grid_canvas.cellw,
+            cell2[1] * grid_canvas.cellh + grid_canvas.cellh,
         ),
     )
     return buff
 
 
-@not_first
+@c.not_first
 def canvas_click(event):
     x = int(c.canvasx(event.x) // c.cellw)
     y = int(c.canvasy(event.y) // c.cellh)
@@ -221,7 +180,7 @@ def canvas_click(event):
     c.select_clicked(x, y)
 
 
-@not_first
+@c.not_first
 def canvas_drag(event):
     x = int(c.canvasx(event.x) // c.cellw)
     y = int(c.canvasy(event.y) // c.cellh)
@@ -230,18 +189,18 @@ def canvas_drag(event):
     c.select_dragged(x, y)
 
 
-@not_first
+@c.not_first
 def undo(event=None):
-    history.undo()
-    c.update_image(history.current())
+    c.history.undo()
+    c.update_image(c.history.current())
     c.remake_orange_rectangles()
     c.update_grid_lines()
 
 
-@not_first
+@c.not_first
 def redo(event=None):
-    history.redo()
-    c.update_image(history.current())
+    c.history.redo()
+    c.update_image(c.history.current())
     c.remake_orange_rectangles()
     c.update_grid_lines()
 
@@ -282,7 +241,7 @@ def height_slide(event):
     c.update_grid_lines()
 
 
-@not_first
+@c.not_first
 def entpress(event):
     if not (int(wstr.get()) == 1 or int(hstr.get()) == 1):
         if int(wstr.get()) != wval.get():
@@ -327,7 +286,7 @@ def lines_checkbox():
     c.update_grid_lines()
 
 
-@not_first
+@c.not_first
 def saves(event=None):
     extensions = [
         ("Png", "*.png"),
@@ -340,7 +299,7 @@ def saves(event=None):
             defaultextension=extensions, filetypes=extensions
         )
         if fileobj.name != None:
-            history.current().save(fileobj.name)
+            c.history.current().save(fileobj.name)
     except Exception as e:
         print(e)
 
@@ -396,6 +355,6 @@ def openim(event=None):
     width_sldr.grid(row=0, column=0)
     width_sldr.set(50)
 
-    history.push(im)
+    c.history.push(im)
 
     got_started = True
