@@ -138,8 +138,8 @@ class GridCanvas(Canvas):
             self.history.push(new_image)
 
             self.update_image(new_image)
-            self.remake_orange_rectangles()
-            self.update_grid_lines()
+            self._remake_orange_rectangles()
+            self._update_grid_lines()
 
         return handler
 
