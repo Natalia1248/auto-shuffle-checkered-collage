@@ -95,33 +95,15 @@ class GridCanvas(Canvas):
             self.delete(self.selection.position_id(x, y))
             self.selection.remove_cell(x, y)
 
-    def remake_orange_rectangles(self):
-        new_selection = Selection()
-        for x, y in self.selection.all_positions():
-            self.delete(self.selection.position_id(x, y))
-            new_selection.put_cell(x, y, self._make_orange_rect(x, y))
-        self.selection = new_selection
-
-    def cell_size(self, cellw, cellh):
+    def set_cell_size(self, cellw, cellh):
         self.cellw = cellw
         self.cellh = cellh
 
         self.gwidth = (self.image.size[0] // cellw) + 1
         self.gheight = (self.image.size[1] // cellh) + 1
 
-    def update_grid_lines(self):
-        for id in self.line_ids:
-            self.delete(id)
-        self.line_ids = []
-
-        if self.show_outline:
-            width = self.image.size[0]
-            height = self.image.size[1]
-
-            for i in range(0, width, self.cellw):
-                self.line_ids.append(self.create_line(i, 0, i, height))
-            for j in range(0, height, self.cellh):
-                self.line_ids.append(self.create_line(0, j, width, j))
+        self._update_grid_lines()
+        self._remake_orange_rectangles()
 
     def canvas_effect_handler(self, func):
         def handler(_event=None):
@@ -144,13 +126,38 @@ class GridCanvas(Canvas):
 
         return handler
 
-
     def not_first(self, func):
         def inner(event=None):
             if self.image_tkinter_id:
                 func(event)
 
         return inner
+
+    def toggle_lines(self):
+        self.show_outline = not self.show_outline
+        self._update_grid_lines()
+
+    def _remake_orange_rectangles(self):
+        new_selection = Selection()
+        for x, y in self.selection.all_positions():
+            self.delete(self.selection.position_id(x, y))
+            new_selection.put_cell(x, y, self._make_orange_rect(x, y))
+        self.selection = new_selection
+
+    def _update_grid_lines(self):
+        for id in self.line_ids:
+            self.delete(id)
+        self.line_ids = []
+
+        if self.show_outline:
+            width = self.image.size[0]
+            height = self.image.size[1]
+
+            for i in range(0, width, self.cellw):
+                self.line_ids.append(self.create_line(i, 0, i, height))
+            for j in range(0, height, self.cellh):
+                self.line_ids.append(self.create_line(0, j, width, j))
+
     def _make_orange_rect(self, x, y):
         return self.create_rectangle(
             x * self.cellw,

@@ -180,16 +180,11 @@ def width_slide(event):
     if square_checked and (aux == 1 or aux == 2):
         hval.set(wval.get())
         hstr.set(str(wval.get()))
-        c.cell_size(wval.get(), hval.get())
         if aux == 2:
             aux = 3
-    else:
-        aux
 
-    c.cell_size(wval.get(), c.cellh)
+    c.set_cell_size(wval.get(), c.cellh)
     wstr.set(str(event))
-    c.remake_orange_rectangles()
-    c.update_grid_lines()
 
 
 def height_slide(event):
@@ -204,10 +199,8 @@ def height_slide(event):
     else:
         aux = 1
 
-    c.cell_size(c.cellw, hval.get())
+    c.set_cell_size(c.cellw, hval.get())
     hstr.set(str(event))
-    c.remake_orange_rectangles()
-    c.update_grid_lines()
 
 
 @c.not_first
@@ -223,36 +216,30 @@ def entpress(event):
             if square_checked:
                 wval.set(int(hstr.get()))
                 wstr.set(hstr.get())
-        c.cell_size(wval.get(), hval.get())
-        c.update_grid_lines()
-        c.remake_orange_rectangles()
+        c.set_cell_size(wval.get(), hval.get())
 
 
 square_checked = False
 
-
+@c.not_first
 def check(event=None):
     global square_checked
-    if c.image_tkinter_id != None:
-        square_checked = not square_checked
-        if square_checked:
-            lesser = min(hval.get(), wval.get())
-            hval.set(lesser)
-            wval.set(lesser)
-            wstr.set(lesser)
-            hstr.set(lesser)
-        c.cell_size(hval.get(), wval.get())
-        c.update_grid_lines()
+    
+    square_checked = not square_checked
+    if square_checked:
+        lesser = min(hval.get(), wval.get())
+        hval.set(lesser)
+        wval.set(lesser)
+        wstr.set(lesser)
+        hstr.set(lesser)
+    c.set_cell_size(hval.get(), wval.get())
 
 
 show_lines = False
 
 
 def lines_checkbox():
-    global show_lines
-    c.show_outline = not show_lines
-    show_lines = not show_lines
-    c.update_grid_lines()
+    c.toggle_lines()
 
 
 @c.not_first
@@ -324,7 +311,7 @@ def openim(event=None):
     width_sldr.grid(row=0, column=0)
     width_sldr.set(50)
 
-    c.history.push(im)
+    c.history.push(im) #TODO: canvas itself should push to history
 
     got_started = True
 
