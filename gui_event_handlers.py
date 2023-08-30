@@ -50,6 +50,47 @@ def crop_even(img, grid_canvas):
 
 @c.not_first
 @c.canvas_effect_handler
+def swapb(buff, grid_canvas):
+    cell1, cell2 = grid_canvas.selection.first_two_selected()
+
+    third = buff.crop(
+        (
+            cell1[0] * grid_canvas.cellw,
+            cell1[1] * grid_canvas.cellh,
+            cell1[0] * grid_canvas.cellw + grid_canvas.cellw,
+            cell1[1] * grid_canvas.cellh + grid_canvas.cellh,
+        )
+    )
+    buff.paste(
+        buff.crop(
+            (
+                cell2[0] * grid_canvas.cellw,
+                cell2[1] * grid_canvas.cellh,
+                cell2[0] * grid_canvas.cellw + grid_canvas.cellw,
+                cell2[1] * grid_canvas.cellh + grid_canvas.cellh,
+            )
+        ),
+        (
+            cell1[0] * grid_canvas.cellw,
+            cell1[1] * grid_canvas.cellh,
+            cell1[0] * grid_canvas.cellw + grid_canvas.cellw,
+            cell1[1] * grid_canvas.cellh + grid_canvas.cellh,
+        ),
+    )
+    buff.paste(
+        third,
+        (
+            cell2[0] * grid_canvas.cellw,
+            cell2[1] * grid_canvas.cellh,
+            cell2[0] * grid_canvas.cellw + grid_canvas.cellw,
+            cell2[1] * grid_canvas.cellh + grid_canvas.cellh,
+        ),
+    )
+    return buff
+
+
+@c.not_first
+@c.canvas_effect_handler
 def original(img, grid_canvas):
     orig = Image.open(imagepath)
 
@@ -103,47 +144,6 @@ def shuffle2(event=None):
     entry.pack()
 
     button.pack(anchor="center")
-
-
-@c.not_first
-@c.canvas_effect_handler
-def swapb(buff, grid_canvas):
-    cell1, cell2 = grid_canvas.selection.first_two_selected()
-
-    third = buff.crop(
-        (
-            cell1[0] * grid_canvas.cellw,
-            cell1[1] * grid_canvas.cellh,
-            cell1[0] * grid_canvas.cellw + grid_canvas.cellw,
-            cell1[1] * grid_canvas.cellh + grid_canvas.cellh,
-        )
-    )
-    buff.paste(
-        buff.crop(
-            (
-                cell2[0] * grid_canvas.cellw,
-                cell2[1] * grid_canvas.cellh,
-                cell2[0] * grid_canvas.cellw + grid_canvas.cellw,
-                cell2[1] * grid_canvas.cellh + grid_canvas.cellh,
-            )
-        ),
-        (
-            cell1[0] * grid_canvas.cellw,
-            cell1[1] * grid_canvas.cellh,
-            cell1[0] * grid_canvas.cellw + grid_canvas.cellw,
-            cell1[1] * grid_canvas.cellh + grid_canvas.cellh,
-        ),
-    )
-    buff.paste(
-        third,
-        (
-            cell2[0] * grid_canvas.cellw,
-            cell2[1] * grid_canvas.cellh,
-            cell2[0] * grid_canvas.cellw + grid_canvas.cellw,
-            cell2[1] * grid_canvas.cellh + grid_canvas.cellh,
-        ),
-    )
-    return buff
 
 
 @c.not_first
