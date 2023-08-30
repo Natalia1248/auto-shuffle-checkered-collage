@@ -8,15 +8,18 @@ height_sldr = None
 width_sldr = None
 aux = 1
 
+
 @c.not_first
 @c.canvas_effect_handler
 def function1(img, grid_canvas):
     return to_red_checkers(img, grid_canvas)
 
+
 @c.not_first
 @c.canvas_effect_handler
 def function2(img, grid_canvas):
     return to_red(img, grid_canvas)
+
 
 @c.not_first
 @c.canvas_effect_handler
@@ -55,7 +58,8 @@ def original(img, grid_canvas):
             x * grid_canvas.cellw,
             y * grid_canvas.cellh,
             x * grid_canvas.cellw + grid_canvas.cellw,
-            y * grid_canvas.cellh + grid_canvas.cellh)
+            y * grid_canvas.cellh + grid_canvas.cellh,
+        )
         img.paste(orig.crop(box), box)
 
     return img
@@ -63,7 +67,6 @@ def original(img, grid_canvas):
 
 @c.not_first
 def shuffle(event=None):
-
     @c.canvas_effect_handler
     def com(buff, grid_canvas):
         try:
@@ -72,7 +75,7 @@ def shuffle(event=None):
             var = 0
         return shuffle_alg(buff, grid_canvas, var)
 
-    effects_frm = tk.Frame(master=window, name='effect_input')
+    effects_frm = tk.Frame(master=window, name="effect_input")
     effects_frm["bg"] = "purple"
     effects_frm.grid(row=3, column=3, sticky="w", pady=10)
     button = tk.Button(master=effects_frm, command=com, text="Go!")
@@ -84,7 +87,6 @@ def shuffle(event=None):
 
 @c.not_first
 def shuffle2(event=None):
-
     @c.canvas_effect_handler
     def com(buff, grid_canvas):
         try:
@@ -93,7 +95,7 @@ def shuffle2(event=None):
             var = 0
         return shuffle_alg2(buff, grid_canvas, var)
 
-    effects_frm = tk.Frame(master=window, name='effect_input')
+    effects_frm = tk.Frame(master=window, name="effect_input")
     effects_frm["bg"] = "purple"
     effects_frm.grid(row=3, column=3, sticky="w", pady=10)
     button = tk.Button(master=effects_frm, command=com, text="Go!")
@@ -332,11 +334,11 @@ def openim(event=None):
 
     got_started = True
 
+
 def generic_click(event=None):
-    
-    if ('effect_input' not in str(event.widget)):
+    if "effect_input" not in str(event.widget):
         try:
-            effect_input = window.nametowidget('effect_input')
+            effect_input = window.nametowidget("effect_input")
             effect_input.destroy()
         except KeyError:
             pass
