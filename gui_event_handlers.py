@@ -8,6 +8,8 @@ height_sldr = None
 width_sldr = None
 aux = 1
 
+EFFECT_INPUT_NAME = "effect_input"
+
 
 @c.not_first
 @c.canvas_effect_handler
@@ -108,41 +110,33 @@ def original(img, grid_canvas):
 
 @c.not_first
 def shuffle(event=None):
-    @c.canvas_effect_handler
-    def com(buff, grid_canvas):
-        try:
-            var = int(entry.get())
-        except:
-            var = 0
-        return shuffle_alg(buff, grid_canvas, var)
-
-    effects_frm = tk.Frame(master=window, name="effect_input")
+    effects_frm = tk.Frame(master=window, name=EFFECT_INPUT_NAME)
     effects_frm["bg"] = "purple"
     effects_frm.grid(row=3, column=3, sticky="w", pady=10)
-    button = tk.Button(master=effects_frm, command=com, text="Go!")
     entry = tk.Entry(master=effects_frm)
     entry.pack()
 
+    @c.canvas_effect_handler
+    def com(buff, grid_canvas):
+        return shuffle_alg(buff, grid_canvas, int(entry.get()))
+
+    button = tk.Button(master=effects_frm, command=com, text="Go!")
     button.pack(anchor="center")
 
 
 @c.not_first
 def shuffle2(event=None):
-    @c.canvas_effect_handler
-    def com(buff, grid_canvas):
-        try:
-            var = int(entry.get())
-        except:
-            var = 0
-        return shuffle_alg2(buff, grid_canvas, var)
-
-    effects_frm = tk.Frame(master=window, name="effect_input")
+    effects_frm = tk.Frame(master=window, name=EFFECT_INPUT_NAME)
     effects_frm["bg"] = "purple"
     effects_frm.grid(row=3, column=3, sticky="w", pady=10)
-    button = tk.Button(master=effects_frm, command=com, text="Go!")
     entry = tk.Entry(master=effects_frm)
     entry.pack()
 
+    @c.canvas_effect_handler
+    def com(buff, grid_canvas):
+        return shuffle_alg2(buff, grid_canvas, int(entry.get()))
+
+    button = tk.Button(master=effects_frm, command=com, text="Go!")
     button.pack(anchor="center")
 
 
@@ -338,7 +332,7 @@ def openim(event=None):
 def generic_click(event=None):
     if "effect_input" not in str(event.widget):
         try:
-            effect_input = window.nametowidget("effect_input")
+            effect_input = window.nametowidget(EFFECT_INPUT_NAME)
             effect_input.destroy()
         except KeyError:
             pass
