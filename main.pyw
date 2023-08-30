@@ -114,8 +114,8 @@ chk_btn.grid(row=2, column=0)
 g_btn = tk.Checkbutton(window, text="show grid", command=lines_checkbox)
 g_btn.grid(row=1, column=2, padx=10, sticky="sw")
 
-c.bind("<B1-Motion>", canvas_drag)
-c.bind("<Button-1>", canvas_click)
+c.bind("<B1-Motion>", c.handle_drag)
+c.bind("<Button-1>", c.handle_click)
 
 window.bind("<Escape>", lambda event: c.unselect_all())
 window.bind("<Control-a>", lambda event: c.select_all())

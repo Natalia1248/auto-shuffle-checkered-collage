@@ -141,24 +141,6 @@ def shuffle2(event=None):
 
 
 @c.not_first
-def canvas_click(event):
-    x = int(c.canvasx(event.x) // c.cellw)
-    y = int(c.canvasy(event.y) // c.cellh)
-    if x > c.image.size[0] or y > c.image.size[1] or x < 0 or y < 0:
-        return
-    c.select_clicked(x, y)
-
-
-@c.not_first
-def canvas_drag(event):
-    x = int(c.canvasx(event.x) // c.cellw)
-    y = int(c.canvasy(event.y) // c.cellh)
-    if x > c.image.size[0] or y > c.image.size[1] or x < 0 or y < 0:
-        return
-    c.select_dragged(x, y)
-
-
-@c.not_first
 def undo(event=None):
     c.history.undo()
     c.update_image(c.history.current())
@@ -221,10 +203,11 @@ def entpress(event):
 
 square_checked = False
 
+
 @c.not_first
 def check(event=None):
     global square_checked
-    
+
     square_checked = not square_checked
     if square_checked:
         lesser = min(hval.get(), wval.get())
@@ -311,7 +294,7 @@ def openim(event=None):
     width_sldr.grid(row=0, column=0)
     width_sldr.set(50)
 
-    c.history.push(im) #TODO: canvas itself should push to history
+    c.history.push(im)  # TODO: canvas itself should push to history
 
     got_started = True
 

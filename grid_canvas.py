@@ -17,6 +17,7 @@ class GridCanvas(Canvas):
         self.cellw = 50
         self.cellh = 50
 
+        self.image = None
         self.image_tkinter_id = None
         self.selection = Selection()
 
@@ -73,7 +74,15 @@ class GridCanvas(Canvas):
                 if self.selection.position_id(i, j) == None:
                     self.selection.put_cell(i, j, self._make_orange_rect(i, j))
 
-    def select_clicked(self, x, y):
+    def handle_click(self, event):
+        if not self.image:
+            return
+
+        x = int(self.canvasx(event.x) // self.cellw)
+        y = int(self.canvasy(event.y) // self.cellh)
+        if x > self.image.size[0] or y > self.image.size[1] or x < 0 or y < 0:
+            return
+
         cellid = self.selection.position_id(x, y)
 
         if cellid == None:
@@ -85,7 +94,15 @@ class GridCanvas(Canvas):
             self.delete(self.selection.position_id(x, y))
             self.selection.remove_cell(x, y)
 
-    def select_dragged(self, x, y):
+    def handle_drag(self, event):
+        if not self.image:
+            return
+
+        x = int(self.canvasx(event.x) // self.cellw)
+        y = int(self.canvasy(event.y) // self.cellh)
+        if x > self.image.size[0] or y > self.image.size[1] or x < 0 or y < 0:
+            return
+
         cellid = self.selection.position_id(x, y)
 
         if self.writing == 1 and cellid == None:
@@ -128,7 +145,7 @@ class GridCanvas(Canvas):
 
     def not_first(self, func):
         def inner(event=None):
-            if self.image_tkinter_id:
+            if self.image:
                 func(event)
 
         return inner
