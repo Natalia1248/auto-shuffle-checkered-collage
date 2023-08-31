@@ -161,7 +161,7 @@ def width_slide(event):
         if aux == 2:
             aux = 3
 
-    c.set_cell_size(wval.get(), c.cellh)
+    c.set_cell_size(wval.get(), hval.get())
     wstr.set(str(event))
 
 
@@ -177,7 +177,7 @@ def height_slide(event):
     else:
         aux = 1
 
-    c.set_cell_size(c.cellw, hval.get())
+    c.set_cell_size(wval.get(), hval.get())
     hstr.set(str(event))
 
 
