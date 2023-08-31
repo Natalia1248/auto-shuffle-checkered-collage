@@ -11,7 +11,7 @@ class GridCanvas(Canvas):
         self.line_ids = []
 
         # variable to communicate info between select_clicked and select_dragged, to avoid glitchy dragging
-        self.writing = 0
+        self.selecting = False
 
         # cell width, cell height
         self.cellw = 50
@@ -19,6 +19,7 @@ class GridCanvas(Canvas):
 
         self.image = None
         self.image_tkinter_id = None
+
         self.selection = Selection()
 
         self.history = History(30)
@@ -26,42 +27,19 @@ class GridCanvas(Canvas):
         Canvas.__init__(self, master=master, **kw)
 
     def update_image(self, image):
-        # takes an image, and replaces the previous image on display with it
 
-        # grid width, grid height
-        if image.size[0] % self.cellw != 0:
-            self.gwidth = (image.size[0] // self.cellw) + 1
-        else:
-            self.gwidth = image.size[0] // self.cellw
-        if image.size[0] % self.cellw != 0:
-            self.gheight = (image.size[1] // self.cellh) + 1
-        else:
-            self.gheight = image.size[1] // self.cellh
-
-        # contemplate shrinking in the light of our selection
-        if hasattr(self, "image") and self.selection.length() > 0:
-            old_max_x = self.selection.max_x()
-            if self.image.size[0] > image.size[0]:
-                for i in range(self.gwidth, self.selection.max_x() + 1):
-                    for j in range(self.selection.max_y() + 1):
-                        self.selection.remove_cell(i, j)
-            if self.image.size[1] > image.size[1]:
-                for j in range(self.gheight, self.selection.max_y() + 1):
-                    for i in range(old_max_x + 1):
-                        self.selection.remove_cell(i, j)
-
-        self["scrollregion"] = (0, 0, image.size[0], image.size[1])
-        self.image = deepcopy(image)
-        self.delete(self.image_tkinter_id)
-        self.config(width=image.size[0], height=image.size[1])
-        image.convert(mode="1")
-        self.tkimage = ImageTk.PhotoImage(image=image)
         self.delete("all")
-        self.image_tkinter_id = self.create_image(
-            0, 0, image=self.tkimage, anchor="nw", state="normal"
-        )
 
-        self.update()
+        width, height = image.size
+        self["scrollregion"] = (0, 0, width, height)
+        self.config(width=width, height=height)
+
+        self.image = deepcopy(image)
+        self.__tkimage = ImageTk.PhotoImage(image=image)
+        self.image_tkinter_id = self.create_image(
+            0, 0, image=self.__tkimage, anchor="nw", state="normal"
+        )
+        self._remake_grid()
 
     def unselect_all(self):
         for id in self.selection.all_ids():
@@ -69,58 +47,41 @@ class GridCanvas(Canvas):
         self.selection.remove_all()
 
     def select_all(self):
-        for i in range(self.gwidth):
-            for j in range(self.gheight):
-                if self.selection.position_id(i, j) == None:
-                    self.selection.put_cell(i, j, self._make_orange_rect(i, j))
+        width, height = self.image.size
+
+        for i in range(0, width, self.cellw):
+            for j in range(0, height, self.cellh):
+                self._select_cell(i, j)
 
     def handle_click(self, event):
         if not self.image:
             return
 
-        x = int(self.canvasx(event.x) // self.cellw)
-        y = int(self.canvasy(event.y) // self.cellh)
-        if x > self.image.size[0] or y > self.image.size[1] or x < 0 or y < 0:
-            return
+        i, j = self._location_to_grid_position(event.x, event.y)
 
-        cellid = self.selection.position_id(x, y)
-
-        if cellid == None:
-            self.writing = 1
-            self.selection.put_cell(x, y, self._make_orange_rect(x, y))
-
+        if not self.selection.position_id(i, j):
+            self.selecting = True
+            self._select_cell(i, j)
         else:
-            self.writing = 0
-            self.delete(self.selection.position_id(x, y))
-            self.selection.remove_cell(x, y)
+            self.selecting = False
+            self._unselect_cell(i, j)
 
     def handle_drag(self, event):
         if not self.image:
             return
 
-        x = int(self.canvasx(event.x) // self.cellw)
-        y = int(self.canvasy(event.y) // self.cellh)
-        if x > self.image.size[0] or y > self.image.size[1] or x < 0 or y < 0:
-            return
+        i, j = self._location_to_grid_position(event.x, event.y)
 
-        cellid = self.selection.position_id(x, y)
-
-        if self.writing == 1 and cellid == None:
-            self.selection.put_cell(x, y, self._make_orange_rect(x, y))
-
-        elif self.writing == 0:
-            self.delete(self.selection.position_id(x, y))
-            self.selection.remove_cell(x, y)
+        if self.selecting:
+            self._select_cell(i, j)
+        else:
+            self._unselect_cell(i, j)
 
     def set_cell_size(self, cellw, cellh):
         self.cellw = cellw
         self.cellh = cellh
 
-        self.gwidth = (self.image.size[0] // cellw) + 1
-        self.gheight = (self.image.size[1] // cellh) + 1
-
-        self._update_grid_lines()
-        self._remake_orange_rectangles()
+        self._remake_grid()
 
     def canvas_effect_handler(self, func):
         def handler(_event=None):
@@ -132,14 +93,11 @@ class GridCanvas(Canvas):
                 fill="green",
                 stipple="gray25",
             )
-            self.update()
             new_image = func(deepcopy(self.history.current()), self)
             self.delete("all")
             self.history.push(new_image)
-
             self.update_image(new_image)
-            self._remake_orange_rectangles()
-            self._update_grid_lines()
+            self._remake_grid()
 
         return handler
 
@@ -152,30 +110,43 @@ class GridCanvas(Canvas):
 
     def toggle_lines(self):
         self.show_outline = not self.show_outline
-        self._update_grid_lines()
+        self._remake_grid()
 
-    def _remake_orange_rectangles(self):
-        new_selection = Selection()
-        for x, y in self.selection.all_positions():
-            self.delete(self.selection.position_id(x, y))
-            new_selection.put_cell(x, y, self._make_orange_rect(x, y))
-        self.selection = new_selection
+    def _location_to_grid_position(self, x, y):
+        i = int(self.canvasx(x) // self.cellw)
+        j = int(self.canvasy(y) // self.cellh)
+        return (i, j)
 
-    def _update_grid_lines(self):
+    def _select_cell(self, i, j):
+        if not self.selection.position_id(i, j):
+            self.selection.put_cell(i, j, self._make_orange_cell(i, j))
+
+    def _unselect_cell(self, i, j):
+        cell_id = self.selection.position_id(i, j)
+        if cell_id:
+            self.delete(cell_id)
+        self.selection.remove_cell(i, j)
+
+    def _remake_grid(self):
         for id in self.line_ids:
             self.delete(id)
         self.line_ids = []
 
         if self.show_outline:
-            width = self.image.size[0]
-            height = self.image.size[1]
+            width, height = self.image.size
 
             for i in range(0, width, self.cellw):
                 self.line_ids.append(self.create_line(i, 0, i, height))
             for j in range(0, height, self.cellh):
                 self.line_ids.append(self.create_line(0, j, width, j))
 
-    def _make_orange_rect(self, x, y):
+        for i, j in self.selection.all_positions():
+            self.delete(self.selection.position_id(i, j))
+
+        for i, j in self.selection.all_positions():
+            self.selection.put_cell(i, j, self._make_orange_cell(i, j))
+
+    def _make_orange_cell(self, x, y):
         return self.create_rectangle(
             x * self.cellw,
             y * self.cellh,

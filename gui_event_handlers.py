@@ -144,16 +144,12 @@ def shuffle2(event=None):
 def undo(event=None):
     c.history.undo()
     c.update_image(c.history.current())
-    c.remake_orange_rectangles()
-    c.update_grid_lines()
 
 
 @c.not_first
 def redo(event=None):
     c.history.redo()
     c.update_image(c.history.current())
-    c.remake_orange_rectangles()
-    c.update_grid_lines()
 
 
 def width_slide(event):
