@@ -17,8 +17,12 @@ def to_red(image, c):
 def to_red_checkers(image, c):
     cellw = c.cellw
     cellh = c.cellh
-    for i in range(c.selection.left, c.selection.right + 1):
-        for j in range(c.selection.top, c.selection.bottom + 1):
+    for i in range(
+        c.selection.get_left_boundary(), c.selection.get_right_boundary() + 1
+    ):
+        for j in range(
+            c.selection.get_top_boundary(), c.selection.get_bottom_boundary() + 1
+        ):
             if c.selection.position_id(i, j) != None:
                 x = i * cellw
                 y = j * cellh
@@ -43,8 +47,12 @@ def shuffle_alg(image, c, var):
     cellw = c.cellw
     cellh = c.cellh
     selected_cells = {}
-    for x in range(c.selection.left, c.selection.right + 1):
-        for y in range(c.selection.top, c.selection.bottom + 1):
+    for x in range(
+        c.selection.get_left_boundary(), c.selection.get_right_boundary() + 1
+    ):
+        for y in range(
+            c.selection.get_top_boundary(), c.selection.get_bottom_boundary() + 1
+        ):
             if c.selection.position_id(x, y) != None:
                 selected_cells[(x, y)] = image.crop(
                     (x * cellw, y * cellh, x * cellw + cellw, y * cellh + cellh)
@@ -63,8 +71,14 @@ def shuffle_alg2(image, canvgrid, var):
     cwidth = canvgrid.cellw
     cheight = canvgrid.cellh
 
-    for x in range(canvgrid.selection.left, canvgrid.selection.right + 1):
-        for y in range(canvgrid.selection.top, canvgrid.selection.bottom + 1):
+    for x in range(
+        canvgrid.selection.get_left_boundary(),
+        canvgrid.selection.get_right_boundary() + 1,
+    ):
+        for y in range(
+            canvgrid.selection.get_top_boundary(),
+            canvgrid.selection.get_bottom_boundary() + 1,
+        ):
             if canvgrid.selection.position_id(x, y) != None:
                 c = 0
                 while c < 3:

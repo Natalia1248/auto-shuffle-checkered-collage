@@ -33,3 +33,15 @@ class Selection:
 
     def remove_all(self):
         self.__selection.clear()
+
+    def get_left_boundary(self):
+        return min(map(lambda pos: pos[0], self.__selection.keys()))
+
+    def get_right_boundary(self):
+        return max(map(lambda pos: pos[0], self.__selection.keys()))
+
+    def get_top_boundary(self):
+        return min(map(lambda pos: pos[1], self.__selection.keys()))
+
+    def get_bottom_boundary(self):
+        return max(map(lambda pos: pos[1], self.__selection.keys()))
