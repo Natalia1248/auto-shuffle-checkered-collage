@@ -4,6 +4,9 @@ from PIL import ImageTk, Image
 from selection import Selection
 from history import History
 
+CANVAS_WIDTH = 800
+CANVAS_HEIGHT = 600
+
 
 class GridCanvas:
     def __init__(self):
@@ -31,14 +34,16 @@ class GridCanvas:
 
         self.canvas.delete("all")
 
-        width, height = map(lambda x: int(x * self.zoom), image.size)
+        self.zoom = CANVAS_WIDTH / image.size[0]
+
+        width, height = map(lambda x: round(x * self.zoom), image.size)
 
         self.display_image = self.image.resize(
             (width, height), Image.Resampling.LANCZOS
         )
 
         self.canvas["scrollregion"] = (0, 0, width, height)
-        self.canvas.config(width=width, height=height)
+        self.canvas.config(width=CANVAS_WIDTH, height=min(CANVAS_HEIGHT, height))
 
         self.__tkimage = ImageTk.PhotoImage(image=self.display_image)
         self.canvas.create_image(
@@ -54,8 +59,8 @@ class GridCanvas:
     def select_all(self):
         width, height = self.display_image.size
 
-        for i in range(width // self.display_cellw + 1):
-            for j in range(height // self.display_cellh + 1):
+        for i in range(width // round(self.cellw * self.zoom) + 1):
+            for j in range(height // round(self.cellh * self.zoom) + 1):
                 self._select_cell(i, j)
 
     def handle_click(self, event):
@@ -83,11 +88,8 @@ class GridCanvas:
             self._unselect_cell(i, j)
 
     def set_cell_size(self, cellw, cellh):
-        self.display_cellw = int(cellw * self.zoom)
-        self.display_cellh = int(cellh * self.zoom)
-
-        self.cellw = int(self.display_cellw // self.zoom)
-        self.cellh = int(self.display_cellh // self.zoom)
+        self.cellw = cellw
+        self.cellh = cellh
 
         self._remake_grid()
 
@@ -121,8 +123,8 @@ class GridCanvas:
         self._remake_grid()
 
     def _location_to_grid_position(self, x, y):
-        i = int(self.canvas.canvasx(x) // self.display_cellw)
-        j = int(self.canvas.canvasy(y) // self.display_cellh)
+        i = round(self.canvas.canvasx(x) // (self.cellw * self.zoom))
+        j = round(self.canvas.canvasy(y) // (self.cellh * self.zoom))
         return (i, j)
 
     def _select_cell(self, i, j):
@@ -141,12 +143,14 @@ class GridCanvas:
         self.line_ids = []
 
         if self.show_outline:
-            width, height = self.display_image.size
+            width, height = self.image.size
 
-            for i in range(0, width, self.display_cellw):
-                self.line_ids.append(self.canvas.create_line(i, 0, i, height))
-            for j in range(0, height, self.display_cellh):
-                self.line_ids.append(self.canvas.create_line(0, j, width, j))
+            for a in range(0, width, self.cellw):
+                x = a * self.zoom
+                self.line_ids.append(self.canvas.create_line(x, 0, x, height))
+            for b in range(0, height, self.cellh):
+                y = b * self.zoom
+                self.line_ids.append(self.canvas.create_line(0, y, width, y))
 
         for i, j in self.selection.all_positions():
             self.canvas.delete(self.selection.position_id(i, j))
@@ -156,10 +160,10 @@ class GridCanvas:
 
     def _make_orange_cell(self, x, y):
         return self.canvas.create_rectangle(
-            x * self.display_cellw,
-            y * self.display_cellh,
-            x * self.display_cellw + self.display_cellw,
-            y * self.display_cellh + self.display_cellh,
+            round(x * self.cellw * self.zoom),
+            round(y * self.cellh * self.zoom),
+            round((x + 1) * self.cellw * self.zoom),
+            round((y + 1) * self.cellh * self.zoom),
             fill="orange",
             outline="",
             stipple="gray50",
