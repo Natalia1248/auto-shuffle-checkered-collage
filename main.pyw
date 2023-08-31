@@ -1,3 +1,5 @@
+import tkinter as tk
+
 from config import *
 from gui_event_handlers import *
 
@@ -9,6 +11,8 @@ window.grid_rowconfigure(1, weight=1, minsize=15)
 window.grid_rowconfigure(2, weight=1)
 window.grid_rowconfigure(3, weight=1)
 window.bind("<Button-1>", generic_click)
+
+c.canvas = tk.Canvas(master=window)
 
 
 l_frm.grid(row=0, column=1, pady=3, sticky="w")
@@ -83,20 +87,20 @@ redo_btn.configure(bg=lb_color, activebackground=la_color)
 
 ######
 vscrollbar = tk.Scrollbar(master=window)
-vscrollbar.config(command=c.yview)
+vscrollbar.config(command=c.canvas.yview)
 vscrollbar.grid(row=3, column=0, sticky="ens", pady=15)
 
 hscrollbar = tk.Scrollbar(master=window)
 hscrollbar.config(
-    command=c.xview,
+    command=c.canvas.xview,
     orient="horizontal",
 )
 hscrollbar.grid(row=1, column=1, sticky="wse")
 
-c.config(yscrollcommand=vscrollbar.set, xscrollcommand=hscrollbar.set)
-c.outline = ""
-c.grid(row=3, column=1, sticky="n")
-c.create_text(200, 100, text="Load an image please", font=("Helvetica", 24))
+c.canvas.config(yscrollcommand=vscrollbar.set, xscrollcommand=hscrollbar.set)
+c.canvas.outline = ""
+c.canvas.grid(row=3, column=1, sticky="n")
+c.canvas.create_text(200, 100, text="Load an image please", font=("Helvetica", 24))
 
 
 wentry = tk.Entry(s_frm, textvariable=wstr, width=4)
@@ -114,8 +118,8 @@ chk_btn.grid(row=2, column=0)
 g_btn = tk.Checkbutton(window, text="show grid", command=lines_checkbox)
 g_btn.grid(row=1, column=2, padx=10, sticky="sw")
 
-c.bind("<B1-Motion>", c.handle_drag)
-c.bind("<Button-1>", c.handle_click)
+c.canvas.bind("<B1-Motion>", c.handle_drag)
+c.canvas.bind("<Button-1>", c.handle_click)
 
 window.bind("<Escape>", lambda event: c.unselect_all())
 window.bind("<Control-a>", lambda event: c.select_all())

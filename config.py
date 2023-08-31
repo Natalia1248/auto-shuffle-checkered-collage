@@ -1,7 +1,6 @@
 from grid_canvas import GridCanvas
 import tkinter as tk
 from tkinter import filedialog
-from collections import deque
 from PIL import Image
 
 
@@ -37,9 +36,8 @@ c_frm = tk.Frame(window)
 c_frm["bg"] = s_color
 c_frm.grid(row=1, column=1, padx=5, pady=5)
 
-c = GridCanvas(
-    window,
-)
+canvas_frm = tk.Frame(master=window)
+c = GridCanvas()
 
 wstr = tk.StringVar()
 wval = tk.IntVar()

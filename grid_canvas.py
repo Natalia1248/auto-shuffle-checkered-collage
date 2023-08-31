@@ -5,8 +5,8 @@ from selection import Selection
 from history import History
 
 
-class GridCanvas(Canvas):
-    def __init__(self, master=None, **kw):
+class GridCanvas:
+    def __init__(self):
         self.show_outline = False
         self.line_ids = []
 
@@ -24,12 +24,12 @@ class GridCanvas(Canvas):
 
         self.history = History(30)
 
-        Canvas.__init__(self, master=master, **kw)
+        self.canvas = None
 
     def update_image(self, image):
         self.image = deepcopy(image)
 
-        self.delete("all")
+        self.canvas.delete("all")
 
         width, height = map(lambda x: int(x * self.zoom), image.size)
 
@@ -37,23 +37,25 @@ class GridCanvas(Canvas):
             (width, height), Image.Resampling.LANCZOS
         )
 
-        self["scrollregion"] = (0, 0, width, height)
-        self.config(width=width, height=height)
+        self.canvas["scrollregion"] = (0, 0, width, height)
+        self.canvas.config(width=width, height=height)
 
         self.__tkimage = ImageTk.PhotoImage(image=self.display_image)
-        self.create_image(0, 0, image=self.__tkimage, anchor="nw", state="normal")
+        self.canvas.create_image(
+            0, 0, image=self.__tkimage, anchor="nw", state="normal"
+        )
         self._remake_grid()
 
     def unselect_all(self):
         for id in self.selection.all_ids():
-            self.delete(id)
+            self.canvas.delete(id)
         self.selection.remove_all()
 
     def select_all(self):
         width, height = self.display_image.size
 
-        for i in range(0, width, self.display_cellw):
-            for j in range(0, height, self.display_cellh):
+        for i in range(width // self.display_cellw + 1):
+            for j in range(height // self.display_cellh + 1):
                 self._select_cell(i, j)
 
     def handle_click(self, event):
@@ -81,7 +83,6 @@ class GridCanvas(Canvas):
             self._unselect_cell(i, j)
 
     def set_cell_size(self, cellw, cellh):
-
         self.display_cellw = int(cellw * self.zoom)
         self.display_cellh = int(cellh * self.zoom)
 
@@ -92,7 +93,7 @@ class GridCanvas(Canvas):
 
     def canvas_effect_handler(self, func):
         def handler(_event=None):
-            self.create_rectangle(
+            self.canvas.create_rectangle(
                 0,
                 0,
                 self.history.current().size[0],
@@ -101,7 +102,7 @@ class GridCanvas(Canvas):
                 stipple="gray25",
             )
             new_image = func(deepcopy(self.history.current()), self)
-            self.delete("all")
+            self.canvas.delete("all")
             self.history.push(new_image)
             self.update_image(new_image)
             self._remake_grid()
@@ -120,8 +121,8 @@ class GridCanvas(Canvas):
         self._remake_grid()
 
     def _location_to_grid_position(self, x, y):
-        i = int(self.canvasx(x) // self.display_cellw)
-        j = int(self.canvasy(y) // self.display_cellh)
+        i = int(self.canvas.canvasx(x) // self.display_cellw)
+        j = int(self.canvas.canvasy(y) // self.display_cellh)
         return (i, j)
 
     def _select_cell(self, i, j):
@@ -131,30 +132,30 @@ class GridCanvas(Canvas):
     def _unselect_cell(self, i, j):
         cell_id = self.selection.position_id(i, j)
         if cell_id:
-            self.delete(cell_id)
+            self.canvas.delete(cell_id)
         self.selection.remove_cell(i, j)
 
     def _remake_grid(self):
         for id in self.line_ids:
-            self.delete(id)
+            self.canvas.delete(id)
         self.line_ids = []
 
         if self.show_outline:
             width, height = self.display_image.size
 
             for i in range(0, width, self.display_cellw):
-                self.line_ids.append(self.create_line(i, 0, i, height))
+                self.line_ids.append(self.canvas.create_line(i, 0, i, height))
             for j in range(0, height, self.display_cellh):
-                self.line_ids.append(self.create_line(0, j, width, j))
+                self.line_ids.append(self.canvas.create_line(0, j, width, j))
 
         for i, j in self.selection.all_positions():
-            self.delete(self.selection.position_id(i, j))
+            self.canvas.delete(self.selection.position_id(i, j))
 
         for i, j in self.selection.all_positions():
             self.selection.put_cell(i, j, self._make_orange_cell(i, j))
 
     def _make_orange_cell(self, x, y):
-        return self.create_rectangle(
+        return self.canvas.create_rectangle(
             x * self.display_cellw,
             y * self.display_cellh,
             x * self.display_cellw + self.display_cellw,
