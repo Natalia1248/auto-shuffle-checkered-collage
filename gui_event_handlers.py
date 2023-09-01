@@ -4,8 +4,6 @@ import tkinter as tk
 from config import *
 from effects import to_red_checkers, to_red, shuffle_alg, shuffle_alg2
 
-height_sldr = None
-width_sldr = None
 aux = 1
 
 EFFECT_INPUT_NAME = "effect_input"
@@ -239,60 +237,26 @@ def saves(event=None):
         print(e)
 
 
-def openim(event=None):
-    global imagepath, height_sldr, width_sldr, aux, got_started
-    aux = 1
+def openim(width_sldr, height_sldr):
+    def handle_openim(event=None):
+        global imagepath, aux
+        aux = 1
 
-    try:
-        fileobj = filedialog.askopenfile()
-        imagepath = fileobj.name
-        im = Image.open(fileobj.name)
-    except:
-        return
+        try:
+            fileobj = filedialog.askopenfile()
+            imagepath = fileobj.name
+            im = Image.open(fileobj.name)
+        except:
+            return
 
-    c.update_image(im)
+        c.update_image(im)
 
-    hlen = 2 * im.size[1] // 3
-    if hlen > 650:
-        hlen = 650
+        width_sldr.config(to=im.size[0])
+        height_sldr.config(to=im.size[1])
 
-    if height_sldr != None:
-        height_sldr.destroy()
-    if width_sldr != None:
-        width_sldr.destroy()
+        c.history.push(im)  # TODO: canvas itself should push to history
 
-    height_sldr = tk.Scale(
-        master=s_frm,
-        from_=2,
-        to=im.size[1],
-        length=hlen,
-        command=height_slide,
-        label="CELL HEIGHT",
-        width=10,
-        variable=hval,
-    )
-    height_sldr.grid(row=0, column=1)
-    height_sldr.set(50)
-
-    wlen = 2 * im.size[0] // 3
-    if wlen > 650:
-        wlen = 650
-    width_sldr = tk.Scale(
-        master=s_frm,
-        from_=2,
-        to=im.size[0],
-        length=wlen,
-        command=width_slide,
-        label="CELL WIDTH",
-        width=10,
-        variable=wval,
-    )
-    width_sldr.grid(row=0, column=0)
-    width_sldr.set(50)
-
-    c.history.push(im)  # TODO: canvas itself should push to history
-
-    got_started = True
+    return handle_openim
 
 
 def generic_click(event=None):
