@@ -4,8 +4,6 @@ import tkinter as tk
 from config import *
 from effects import to_red_checkers, to_red, shuffle_alg, shuffle_alg2
 
-aux = 1
-
 EFFECT_INPUT_NAME = "effect_input"
 
 
@@ -167,68 +165,24 @@ def redo(event=None):
 
 
 def width_slide(event):
-    global aux
-
-    if square_checked and (aux == 1 or aux == 2):
-        hval.set(wval.get())
-        hstr.set(str(wval.get()))
-        if aux == 2:
-            aux = 3
-
-    c.set_cell_size(wval.get(), hval.get())
-    wstr.set(str(event))
+    c.set_cell_size(int(event), c.cellh)
 
 
 def height_slide(event):
-    global aux
-
-    if square_checked and (aux == 1 or aux == 3):
-        wval.set(hval.get())
-        wstr.set(str(hval.get()))
-        c.cell_size(wval.get(), hval.get())
-        if aux == 3:
-            aux = 2
-    else:
-        aux = 1
-
-    c.set_cell_size(wval.get(), hval.get())
-    hstr.set(str(event))
+    c.set_cell_size(c.cellw, int(event))
 
 
-@c.not_first
-def entpress(event):
-    if not (int(wstr.get()) == 1 or int(hstr.get()) == 1):
-        if int(wstr.get()) != wval.get():
-            wval.set(int(wstr.get()))
-            if square_checked:
-                hval.set(int(wstr.get()))
-                hstr.set(wstr.get())
-        elif int(hstr.get()) != hval.get():
-            hval.set(int(hstr.get()))
-            if square_checked:
-                wval.set(int(hstr.get()))
-                wstr.set(hstr.get())
-        c.set_cell_size(wval.get(), hval.get())
+def entpress(width_entry, height_entry):
+    @c.not_first
+    def handle_entpress(event):
+        c.set_cell_size(int(width_entry.get()), int(height_entry.get()))
 
-
-square_checked = False
+    return handle_entpress
 
 
 @c.not_first
 def check(event=None):
-    global square_checked
-
-    square_checked = not square_checked
-    if square_checked:
-        lesser = min(hval.get(), wval.get())
-        hval.set(lesser)
-        wval.set(lesser)
-        wstr.set(lesser)
-        hstr.set(lesser)
-    c.set_cell_size(hval.get(), wval.get())
-
-
-show_lines = False
+    c.toggle_square_cells()
 
 
 def lines_checkbox():
@@ -253,10 +207,9 @@ def saves(event=None):
         print(e)
 
 
-def openim(width_sldr, height_sldr):
+def openim(on_openim):
     def handle_openim(event=None):
-        global imagepath, aux
-        aux = 1
+        global imagepath
 
         try:
             fileobj = filedialog.askopenfile()
@@ -267,8 +220,7 @@ def openim(width_sldr, height_sldr):
 
         c.update_image(im)
 
-        width_sldr.config(to=im.size[0])
-        height_sldr.config(to=im.size[1])
+        on_openim(im)
 
         c.history.push(im)  # TODO: canvas itself should push to history
 

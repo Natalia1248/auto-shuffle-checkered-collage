@@ -30,14 +30,20 @@ def draw_effects_frm(r_frm, parent_effects_frm):
     )
 
     shuffle2_btn = tk.Button(
-        master=r_frm, command=shuffle_swapping(parent_effects_frm), text="shuffle swapping".title()
+        master=r_frm,
+        command=shuffle_swapping(parent_effects_frm),
+        text="shuffle swapping".title(),
     )
     shuffle2_btn.grid(row=0, column=0, sticky="nsew")
     shuffle2_btn.configure(
         bg=rb_color, fg="white", activebackground=ra_color, activeforeground="white"
     )
 
-    shfl_btn = tk.Button(master=r_frm, command=shuffle_pasting(parent_effects_frm), text="shuffle pasting".title())
+    shfl_btn = tk.Button(
+        master=r_frm,
+        command=shuffle_pasting(parent_effects_frm),
+        text="shuffle pasting".title(),
+    )
     shfl_btn.grid(row=0, column=1, sticky="nsew")
     shfl_btn.configure(
         bg=rb_color, fg="white", activebackground=ra_color, activeforeground="white"
@@ -62,13 +68,13 @@ def draw_effects_frm(r_frm, parent_effects_frm):
     )
 
 
-def draw_file_control_frm(l_frm, width_sldr, height_sldr):
+def draw_file_control_frm(l_frm, on_openim):
     save_btn = tk.Button(master=l_frm, command=saves, text="save\nimage".title())
     save_btn.pack(side="left", fill="both")
     save_btn.configure(bg=lb_color, activebackground=la_color)
 
     open_btn = tk.Button(
-        master=l_frm, command=openim(width_sldr, height_sldr), text="load image".title()
+        master=l_frm, command=openim(on_openim), text="load image".title()
     )
     open_btn.pack(side="left", fill="both")
     open_btn.configure(bg=lb_color, activebackground=la_color)
@@ -105,19 +111,12 @@ def draw_canvas_frm(canvas_frm):
 def draw_sliders_frm(sliders_frm):
     sliders_frm["bg"] = s_color
 
-    height_sldr = tk.Scale(
-        master=sliders_frm,
-        from_=2,
-        command=height_slide,
-        label="CELL HEIGHT",
-        width=10,
-        length=400,
-        variable=hval,
-    )
-    height_sldr.grid(row=0, column=2)
-    height_sldr.set(50)
+    wstr = tk.StringVar(value=50)
+    wval = tk.IntVar(value=50)
+    hstr = tk.StringVar(value=50)
+    hval = tk.IntVar(value=50)
 
-    width_sldr = tk.Scale(
+    width_slider = tk.Scale(
         master=sliders_frm,
         from_=2,
         command=width_slide,
@@ -125,35 +124,59 @@ def draw_sliders_frm(sliders_frm):
         width=10,
         length=400,
         variable=wval,
+        state="disabled",
     )
 
-    width_sldr.grid(row=0, column=3)
-    width_sldr.set(50)
+    width_slider.grid(row=0, column=3)
+    height_slider = tk.Scale(
+        master=sliders_frm,
+        from_=2,
+        command=height_slide,
+        label="CELL HEIGHT",
+        width=10,
+        length=400,
+        variable=hval,
+        state="disabled",
+    )
+    height_slider.grid(row=0, column=2)
 
-    wentry = tk.Entry(sliders_frm, textvariable=wstr, width=4)
-    wentry.grid(row=1, column=2)
-    wstr.set(50)
-    hentry = tk.Entry(sliders_frm, textvariable=hstr, width=4)
-    hentry.grid(row=1, column=3)
-    hstr.set(50)
+    wentry = tk.Entry(sliders_frm, textvariable=wstr, width=4, state="disabled")
+    wentry.grid(row=1, column=3)
+    hentry = tk.Entry(sliders_frm, textvariable=hstr, width=4, state="disabled")
+    hentry.grid(row=1, column=2)
+
+    c.cell_dim_subscribe(lambda *cell_dims: wstr.set(cell_dims[0]))
+    c.cell_dim_subscribe(lambda *cell_dims: hstr.set(cell_dims[1]))
+    c.cell_dim_subscribe(lambda *cell_dims: width_slider.set(cell_dims[0]))
+    c.cell_dim_subscribe(lambda *cell_dims: height_slider.set(cell_dims[1]))
 
     buttons_frm = tk.Frame(master=sliders_frm)
     buttons_frm.grid(row=0, column=0, sticky="n")
     g_btn = tk.Checkbutton(
-        buttons_frm, text="show grid".title(), command=lines_checkbox
+        buttons_frm, text="show grid".title(), command=lines_checkbox, state="disabled"
     )
     g_btn.pack(side="top")
 
-    other = 0
     chk_btn = tk.Checkbutton(
-        buttons_frm, text="get square cells".title(), command=check, variable=other
+        buttons_frm, text="get square cells".title(), command=check, state="disabled"
     )
     chk_btn.pack(side="top")
 
     for frm in sliders_frm.winfo_children():
         frm.grid_configure(padx=5, pady=5)
 
-    return width_sldr, height_sldr, buttons_frm
+    def on_openim(image):
+        width_slider.config(to=image.size[0])
+        height_slider.config(to=image.size[1])
+
+        width_slider.config(state="normal")
+        height_slider.config(state="normal")
+        wentry.config(state="normal")
+        hentry.config(state="normal")
+        chk_btn.config(state="normal")
+        g_btn.config(state="normal")
+
+    return on_openim, buttons_frm, wentry, hentry
 
 
 l_frm = tk.Frame(
@@ -171,8 +194,9 @@ canvas_frm.grid(row=1, column=0)
 r_frm.grid(row=0, column=2)
 sliders_frm.grid(row=1, column=2, sticky="se")
 
-width_slider, height_slider, buttons_frm = draw_sliders_frm(sliders_frm)
-draw_file_control_frm(l_frm, width_slider, height_slider)
+# todo: try and remove buttons frm, grid directly to sliders_frm
+on_openim, buttons_frm, width_entry, height_entry = draw_sliders_frm(sliders_frm)
+draw_file_control_frm(l_frm, on_openim)
 draw_canvas_frm(canvas_frm)
 draw_effects_frm(r_frm, buttons_frm)
 
@@ -185,6 +209,6 @@ window.bind("<Escape>", lambda event: c.unselect_all())
 window.bind("<Control-a>", lambda event: c.select_all())
 window.bind("<Control-z>", undo)
 window.bind("<Control-Shift-Key-Z>", redo)
-window.bind("<Return>", entpress)
+window.bind("<Return>", entpress(width_entry, height_entry))
 
 window.mainloop()

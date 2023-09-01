@@ -8,8 +8,3 @@ imagepath = ""
 window = tk.Tk()
 
 c = GridCanvas()
-
-wstr = tk.StringVar()
-wval = tk.IntVar()
-hstr = tk.StringVar()
-hval = tk.IntVar()
