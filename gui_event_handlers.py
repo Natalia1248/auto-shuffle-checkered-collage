@@ -106,36 +106,52 @@ def original(img, grid_canvas):
     return img
 
 
-@c.not_first
-def shuffle(event=None):
-    effects_frm = tk.Frame(master=window, name=EFFECT_INPUT_NAME)
+def draw_effects_frm(canvas_frm):
+    effects_frm = tk.Frame(master=canvas_frm, name=EFFECT_INPUT_NAME)
     effects_frm["bg"] = "purple"
-    effects_frm.grid(row=3, column=3, sticky="w", pady=10)
+    effects_frm.pack()
     entry = tk.Entry(master=effects_frm)
-    entry.pack()
+    entry.pack(padx=5, pady=5)
 
-    @c.canvas_effect_handler
-    def com(buff, grid_canvas):
-        return shuffle_alg(buff, grid_canvas, int(entry.get()))
+    def window_click(event=None):
+        if "effect_input" not in str(event.widget):
+            effects_frm.destroy()
 
-    button = tk.Button(master=effects_frm, command=com, text="Go!")
-    button.pack(anchor="center")
+    window.bind(
+        "<Button-1>", window_click
+    )  # No need to unbind, next bind will overwrite
+
+    return effects_frm, entry
 
 
-@c.not_first
-def shuffle2(event=None):
-    effects_frm = tk.Frame(master=window, name=EFFECT_INPUT_NAME)
-    effects_frm["bg"] = "purple"
-    effects_frm.grid(row=3, column=3, sticky="w", pady=10)
-    entry = tk.Entry(master=effects_frm)
-    entry.pack()
+def shuffle_pasting(parent_effects_frm):
+    @c.not_first
+    def handle_shuffle(event=None):
+        effects_frm, entry = draw_effects_frm(parent_effects_frm)
 
-    @c.canvas_effect_handler
-    def com(buff, grid_canvas):
-        return shuffle_alg2(buff, grid_canvas, int(entry.get()))
+        @c.canvas_effect_handler
+        def com(buff, grid_canvas):
+            return shuffle_alg(buff, grid_canvas, int(entry.get()))
 
-    button = tk.Button(master=effects_frm, command=com, text="Go!")
-    button.pack(anchor="center")
+        button = tk.Button(master=effects_frm, command=com, text="Go!")
+        button.pack(anchor="center")
+
+    return handle_shuffle
+
+
+def shuffle_swapping(parent_effects_frm):
+    @c.not_first
+    def handle_shuffle(event=None):
+        effects_frm, entry = draw_effects_frm(parent_effects_frm)
+
+        @c.canvas_effect_handler
+        def com(buff, grid_canvas):
+            return shuffle_alg2(buff, grid_canvas, int(entry.get()))
+
+        button = tk.Button(master=effects_frm, command=com, text="Go!")
+        button.pack(anchor="center")
+
+    return handle_shuffle
 
 
 @c.not_first
@@ -257,12 +273,3 @@ def openim(width_sldr, height_sldr):
         c.history.push(im)  # TODO: canvas itself should push to history
 
     return handle_openim
-
-
-def generic_click(event=None):
-    if "effect_input" not in str(event.widget):
-        try:
-            effect_input = window.nametowidget(EFFECT_INPUT_NAME)
-            effect_input.destroy()
-        except KeyError:
-            pass

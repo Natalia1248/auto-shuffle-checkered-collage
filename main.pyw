@@ -16,7 +16,7 @@ window.title("Checkered collage-o-matic")
 window.configure(bg=general_color)
 
 
-def draw_effects_frm(r_frm):
+def draw_effects_frm(r_frm, parent_effects_frm):
     test_btn = tk.Button(master=r_frm, command=function1, text="red checkers".title())
     test_btn.configure(
         bg=rb_color, fg="white", activebackground=ra_color, activeforeground="white"
@@ -30,14 +30,14 @@ def draw_effects_frm(r_frm):
     )
 
     shuffle2_btn = tk.Button(
-        master=r_frm, command=shuffle2, text="shuffle swapping".title()
+        master=r_frm, command=shuffle_swapping(parent_effects_frm), text="shuffle swapping".title()
     )
     shuffle2_btn.grid(row=0, column=0, sticky="nsew")
     shuffle2_btn.configure(
         bg=rb_color, fg="white", activebackground=ra_color, activeforeground="white"
     )
 
-    shfl_btn = tk.Button(master=r_frm, command=shuffle, text="shuffle pasting".title())
+    shfl_btn = tk.Button(master=r_frm, command=shuffle_pasting(parent_effects_frm), text="shuffle pasting".title())
     shfl_btn.grid(row=0, column=1, sticky="nsew")
     shfl_btn.configure(
         bg=rb_color, fg="white", activebackground=ra_color, activeforeground="white"
@@ -95,8 +95,8 @@ def draw_file_control_frm(l_frm, width_sldr, height_sldr):
 def draw_canvas_frm(canvas_frm):
     c.canvas = tk.Canvas(master=canvas_frm)
 
-    c.canvas.outline = ""
-    c.canvas.grid()
+    c.canvas.outline = "red"
+    c.canvas.pack()
     c.canvas.create_text(
         200, 100, text="Load an image please".title(), font=("Helvetica", 24)
     )
@@ -148,12 +148,12 @@ def draw_sliders_frm(sliders_frm):
     chk_btn = tk.Checkbutton(
         buttons_frm, text="get square cells".title(), command=check, variable=other
     )
-    chk_btn.pack(side="top", pady=5)
+    chk_btn.pack(side="top")
 
     for frm in sliders_frm.winfo_children():
         frm.grid_configure(padx=5, pady=5)
 
-    return width_sldr, height_sldr
+    return width_sldr, height_sldr, buttons_frm
 
 
 l_frm = tk.Frame(
@@ -167,25 +167,20 @@ r_frm = tk.Frame(
 
 
 l_frm.grid(row=0, column=0, sticky="w")
-canvas_frm.grid(
-    row=1,
-    column=0,
-)
+canvas_frm.grid(row=1, column=0)
+r_frm.grid(row=0, column=2)
+sliders_frm.grid(row=1, column=2, sticky="se")
 
-r_frm.grid(row=0, column=1)
-sliders_frm.grid(row=1, column=1, sticky="se")
-
-width_slider, height_slider = draw_sliders_frm(sliders_frm)
+width_slider, height_slider, buttons_frm = draw_sliders_frm(sliders_frm)
 draw_file_control_frm(l_frm, width_slider, height_slider)
 draw_canvas_frm(canvas_frm)
-draw_effects_frm(r_frm)
+draw_effects_frm(r_frm, buttons_frm)
 
 for frm in window.winfo_children():
     frm.grid_configure(padx=10, pady=10)
 
 c.canvas.bind("<B1-Motion>", c.handle_drag)
 c.canvas.bind("<Button-1>", c.handle_click)
-window.bind("<Button-1>", generic_click)
 window.bind("<Escape>", lambda event: c.unselect_all())
 window.bind("<Control-a>", lambda event: c.select_all())
 window.bind("<Control-z>", undo)
