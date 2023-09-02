@@ -62,8 +62,8 @@ class GridCanvas:
     def select_all(self):
         width, height = self.display_image.size
 
-        for i in range(width // round(self.cellw * self.zoom) + 1):
-            for j in range(height // round(self.cellh * self.zoom) + 1):
+        for i in range(width // round(self.cellw * self.zoom) + 2):
+            for j in range(height // round(self.cellh * self.zoom) + 2):
                 self._select_cell(i, j)
 
     def handle_click(self, event):
