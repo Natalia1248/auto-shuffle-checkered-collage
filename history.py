@@ -1,19 +1,24 @@
 class History:
     def __init__(self, size):
         self.items = []
-        # the first position of the array is the 0 position
         self.current_pos = -1
         self.maxsize = size
+        self.first = None
 
     def push(self, item):
+        if not self.first:
+            self.first = item
+
         if self.current_pos < self.maxsize - 1:
             del self.items[self.current_pos + 1 :]
-            self.items.append(item)
             self.current_pos += 1
 
         else:
             self.items.pop(0)
-            self.items.append(item)
+        self.items.append(item)
+    
+    def get_first_ever_item(self):
+        return self.first
 
     def undo(self):
         if self.current_pos > -1:

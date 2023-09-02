@@ -1,4 +1,3 @@
-from tkinter import Canvas
 from copy import deepcopy
 from PIL import ImageTk, Image
 from selection import Selection

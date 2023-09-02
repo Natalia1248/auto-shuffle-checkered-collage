@@ -1,7 +1,8 @@
 from tkinter import filedialog
 import tkinter as tk
+from PIL import Image
 
-from config import *
+from config import c, window
 from effects import to_red_checkers, to_red, shuffle_alg, shuffle_alg2
 
 EFFECT_INPUT_NAME = "effect_input"
@@ -22,7 +23,7 @@ def function2(img, grid_canvas):
 @c.not_first
 @c.canvas_effect_handler
 def restart(img, grid_canvas):
-    return Image.open(imagepath)
+    return grid_canvas.history.get_first_ever_item()
 
 
 @c.not_first
@@ -90,7 +91,7 @@ def swapb(buff, grid_canvas):
 @c.not_first
 @c.canvas_effect_handler
 def original(img, grid_canvas):
-    orig = Image.open(imagepath)
+    orig = grid_canvas.history.get_first_ever_item()
 
     for x, y in grid_canvas.selection.all_positions():
         box = (
@@ -209,19 +210,13 @@ def saves(event=None):
 
 def openim(on_openim):
     def handle_openim(event=None):
-        global imagepath
 
-        try:
-            fileobj = filedialog.askopenfile()
-            imagepath = fileobj.name
-            im = Image.open(fileobj.name)
-        except:
-            return
+        fileobj = filedialog.askopenfile()
+        im = Image.open(fileobj.name)
 
         c.update_image(im)
-
+        c.history.push(im)
         on_openim(im)
 
-        c.history.push(im)  # TODO: canvas itself should push to history
 
     return handle_openim
