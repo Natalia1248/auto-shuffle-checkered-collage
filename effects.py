@@ -2,11 +2,11 @@ from PIL import Image
 from random import randint
 
 
-def to_red(image, c):
-    cellw = c.cellw
-    cellh = c.cellh
+def to_red(image, grid_canvas):
+    cellw = grid_canvas.cellw
+    cellh = grid_canvas.cellh
 
-    for i, j in c.selection.all_positions():
+    for i, j in grid_canvas.selection.all_positions():
         x = i * cellw
         y = j * cellh
         box = (x, y, x + cellw, y + cellh)
@@ -14,16 +14,16 @@ def to_red(image, c):
     return image
 
 
-def to_red_checkers(image, c):
-    cellw = c.cellw
-    cellh = c.cellh
+def to_red_checkers(image, grid_canvas):
+    cellw = grid_canvas.cellw
+    cellh = grid_canvas.cellh
     for i in range(
-        c.selection.get_left_boundary(), c.selection.get_right_boundary() + 1
+        grid_canvas.selection.get_left_boundary(), grid_canvas.selection.get_right_boundary() + 1
     ):
         for j in range(
-            c.selection.get_top_boundary(), c.selection.get_bottom_boundary() + 1
+            grid_canvas.selection.get_top_boundary(), grid_canvas.selection.get_bottom_boundary() + 1
         ):
-            if c.selection.position_id(i, j) != None:
+            if grid_canvas.selection.position_id(i, j) != None:
                 x = i * cellw
                 y = j * cellh
                 box = (x, y, x + cellw, y + cellh)
@@ -43,17 +43,17 @@ def make_red(image):
     return Image.merge(image.mode, [imageR, imageN, imageN])
 
 
-def shuffle_alg(image, c, var):
-    cellw = c.cellw
-    cellh = c.cellh
+def to_shuffle_paste(image, grid_canvas, var):
+    cellw = grid_canvas.cellw
+    cellh = grid_canvas.cellh
     selected_cells = {}
     for x in range(
-        c.selection.get_left_boundary(), c.selection.get_right_boundary() + 1
+        grid_canvas.selection.get_left_boundary(), grid_canvas.selection.get_right_boundary() + 1
     ):
         for y in range(
-            c.selection.get_top_boundary(), c.selection.get_bottom_boundary() + 1
+            grid_canvas.selection.get_top_boundary(), grid_canvas.selection.get_bottom_boundary() + 1
         ):
-            if c.selection.position_id(x, y) != None:
+            if grid_canvas.selection.position_id(x, y) is not None:
                 selected_cells[(x, y)] = image.crop(
                     (x * cellw, y * cellh, x * cellw + cellw, y * cellh + cellh)
                 )
@@ -67,25 +67,25 @@ def shuffle_alg(image, c, var):
     return image
 
 
-def shuffle_alg2(image, canvgrid, var):
-    cwidth = canvgrid.cellw
-    cheight = canvgrid.cellh
+def to_shuffle_swap(image, grid_canvas, var):
+    cwidth = grid_canvas.cellw
+    cheight = grid_canvas.cellh
 
     for x in range(
-        canvgrid.selection.get_left_boundary(),
-        canvgrid.selection.get_right_boundary() + 1,
+        grid_canvas.selection.get_left_boundary(),
+        grid_canvas.selection.get_right_boundary() + 1,
     ):
         for y in range(
-            canvgrid.selection.get_top_boundary(),
-            canvgrid.selection.get_bottom_boundary() + 1,
+            grid_canvas.selection.get_top_boundary(),
+            grid_canvas.selection.get_bottom_boundary() + 1,
         ):
-            if canvgrid.selection.position_id(x, y) != None:
+            if grid_canvas.selection.position_id(x, y) is not None:
                 c = 0
                 while c < 3:
-                    xguy = randint(x - var, x + var)
-                    yguy = randint(y - var, y + var)
+                    xfound = randint(x - var, x + var)
+                    yfound = randint(y - var, y + var)
 
-                    if canvgrid.selection.position_id(xguy, yguy) != None:
+                    if grid_canvas.selection.position_id(xfound, yfound) is not None:
                         break
 
                     c += 1
@@ -98,10 +98,10 @@ def shuffle_alg2(image, canvgrid, var):
                         (y + 1) * cheight,
                     )
                     guybox = (
-                        xguy * cwidth,
-                        yguy * cheight,
-                        (xguy + 1) * cwidth,
-                        (yguy + 1) * cheight,
+                        xfound * cwidth,
+                        yfound * cheight,
+                        (xfound + 1) * cwidth,
+                        (yfound + 1) * cheight,
                     )
                     image = swap(image, ibox, guybox)
 

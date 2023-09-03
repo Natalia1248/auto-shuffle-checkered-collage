@@ -3,27 +3,27 @@ import tkinter as tk
 from PIL import Image
 
 from config import c, window
-from effects import to_red_checkers, to_red, shuffle_alg, shuffle_alg2
+from effects import to_red_checkers, to_red, to_shuffle_paste, to_shuffle_swap
 
 EFFECT_INPUT_NAME = "effect_input"
 
 
 @c.not_first
 @c.canvas_effect_handler
-def function1(img, grid_canvas):
+def make_red_checkers(img, grid_canvas):
     return to_red_checkers(img, grid_canvas)
 
 
 @c.not_first
 @c.canvas_effect_handler
-def function2(img, grid_canvas):
+def make_red(img, grid_canvas):
     return to_red(img, grid_canvas)
 
 
 @c.not_first
 @c.canvas_effect_handler
-def restart(img, grid_canvas):
-    return grid_canvas.history.get_first_ever_item()
+def restart(_, grid_canvas):
+    return grid_canvas.history.first_ever_item
 
 
 @c.not_first
@@ -49,7 +49,7 @@ def crop_even(img, grid_canvas):
 
 @c.not_first
 @c.canvas_effect_handler
-def swapb(buff, grid_canvas):
+def swap(buff, grid_canvas):
     cell1, cell2 = grid_canvas.selection.first_two_selected()
 
     third = buff.crop(
@@ -91,7 +91,7 @@ def swapb(buff, grid_canvas):
 @c.not_first
 @c.canvas_effect_handler
 def original(img, grid_canvas):
-    orig = grid_canvas.history.get_first_ever_item()
+    orig = grid_canvas.history.first_ever_item
 
     for x, y in grid_canvas.selection.all_positions():
         box = (
@@ -112,7 +112,7 @@ def draw_effects_frm(canvas_frm):
     entry = tk.Entry(master=effects_frm)
     entry.pack(padx=5, pady=5)
 
-    def window_click(event=None):
+    def window_click(event):
         if "effect_input" not in str(event.widget):
             effects_frm.destroy()
 
@@ -125,14 +125,14 @@ def draw_effects_frm(canvas_frm):
 
 def shuffle_pasting(parent_effects_frm):
     @c.not_first
-    def handle_shuffle(event=None):
+    def handle_shuffle():
         effects_frm, entry = draw_effects_frm(parent_effects_frm)
 
         @c.canvas_effect_handler
-        def com(buff, grid_canvas):
-            return shuffle_alg(buff, grid_canvas, int(entry.get()))
+        def command(img, grid_canvas):
+            return to_shuffle_paste(img, grid_canvas, int(entry.get()))
 
-        button = tk.Button(master=effects_frm, command=com, text="Go!")
+        button = tk.Button(master=effects_frm, command=command, text="Go!")
         button.pack(anchor="center")
 
     return handle_shuffle
@@ -140,12 +140,12 @@ def shuffle_pasting(parent_effects_frm):
 
 def shuffle_swapping(parent_effects_frm):
     @c.not_first
-    def handle_shuffle(event=None):
+    def handle_shuffle():
         effects_frm, entry = draw_effects_frm(parent_effects_frm)
 
         @c.canvas_effect_handler
         def com(buff, grid_canvas):
-            return shuffle_alg2(buff, grid_canvas, int(entry.get()))
+            return to_shuffle_swap(buff, grid_canvas, int(entry.get()))
 
         button = tk.Button(master=effects_frm, command=com, text="Go!")
         button.pack(anchor="center")
@@ -154,13 +154,13 @@ def shuffle_swapping(parent_effects_frm):
 
 
 @c.not_first
-def undo(event=None):
+def undo(*_):
     c.history.undo()
     c.update_image(c.history.current())
 
 
 @c.not_first
-def redo(event=None):
+def redo(*_):
     c.history.redo()
     c.update_image(c.history.current())
 
@@ -175,14 +175,14 @@ def height_slide(event):
 
 def entpress(width_entry, height_entry):
     @c.not_first
-    def handle_entpress(event):
+    def handle_entpress(*_):
         c.set_cell_size(int(width_entry.get()), int(height_entry.get()))
 
     return handle_entpress
 
 
 @c.not_first
-def check(event=None):
+def check():
     c.toggle_square_cells()
 
 
@@ -191,7 +191,7 @@ def lines_checkbox():
 
 
 @c.not_first
-def saves(event=None):
+def saves():
     extensions = [
         ("Png", "*.png"),
         ("Jpg", "*.jpg"),
@@ -209,7 +209,7 @@ def saves(event=None):
 
 
 def openim(on_openim):
-    def handle_openim(event=None):
+    def handle_openim():
 
         fileobj = filedialog.askopenfile()
         im = Image.open(fileobj.name)
