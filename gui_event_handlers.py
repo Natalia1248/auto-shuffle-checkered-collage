@@ -107,7 +107,6 @@ def original(img, grid_canvas):
 
 def draw_effects_frm(canvas_frm):
     effects_frm = tk.Frame(master=canvas_frm, name=EFFECT_INPUT_NAME)
-    effects_frm["bg"] = "purple"
     effects_frm.pack()
     entry = tk.Entry(master=effects_frm)
     entry.pack(padx=5, pady=5)

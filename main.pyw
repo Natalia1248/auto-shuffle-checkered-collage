@@ -3,12 +3,7 @@ import tkinter as tk
 from config import c, window
 from gui_event_handlers import *
 
-general_color = "#310058"
-left_btn_a_color = "#00999D"
-left_btn_b_color = "#00D6DC"
-right_btn_a_color = "#8E00BD"
-right_btn_b_color = "#A300D9"
-sliders_color = "#0C01BE"
+general_color = "#c6c6c6"
 
 
 window.iconbitmap("icon.ico")
@@ -18,16 +13,11 @@ window.configure(bg=general_color)
 
 def draw_effects_frm(r_frm, parent_effects_frm):
     red_checkers_btn = tk.Button(master=r_frm, command=make_red_checkers, text="red checkers".title())
-    red_checkers_btn.configure(
-        bg=right_btn_b_color, fg="white", activebackground=right_btn_a_color, activeforeground="white"
-    )
+
     red_checkers_btn.grid(row=1, column=3, sticky="nsew")
 
     red_btn = tk.Button(master=r_frm, command=make_red, text="make red".title())
     red_btn.grid(row=1, column=2, sticky="nsew")
-    red_btn.configure(
-        bg=right_btn_b_color, fg="white", activebackground=right_btn_a_color, activeforeground="white"
-    )
 
     shuffle_swapping_btn = tk.Button(
         master=r_frm,
@@ -35,9 +25,6 @@ def draw_effects_frm(r_frm, parent_effects_frm):
         text="shuffle swapping".title(),
     )
     shuffle_swapping_btn.grid(row=0, column=0, sticky="nsew")
-    shuffle_swapping_btn.configure(
-        bg=right_btn_b_color, fg="white", activebackground=right_btn_a_color, activeforeground="white"
-    )
 
     shuffle_pasting_btn = tk.Button(
         master=r_frm,
@@ -45,17 +32,11 @@ def draw_effects_frm(r_frm, parent_effects_frm):
         text="shuffle pasting".title(),
     )
     shuffle_pasting_btn.grid(row=0, column=1, sticky="nsew")
-    shuffle_pasting_btn.configure(
-        bg=right_btn_b_color, fg="white", activebackground=right_btn_a_color, activeforeground="white"
-    )
 
     original_cells_btn = tk.Button(
         master=r_frm, command=original, text="replace with original cells".title()
     )
     original_cells_btn.grid(row=0, column=2, sticky="nsew")
-    original_cells_btn.configure(
-        bg=right_btn_b_color, fg="white", activebackground=right_btn_a_color, activeforeground="white"
-    )
 
     swap_btn = tk.Button(
         master=r_frm,
@@ -63,39 +44,35 @@ def draw_effects_frm(r_frm, parent_effects_frm):
         text="swap two cells\n(swaps the first two selected)".title(),
     )
     swap_btn.grid(row=0, column=3, sticky="nsew")
-    swap_btn.configure(
-        bg=right_btn_b_color, fg="white", activebackground=right_btn_a_color, activeforeground="white"
-    )
+
 
 
 def draw_file_control_frm(l_frm, on_openim):
-    save_btn = tk.Button(master=l_frm, command=saves, text="save\nimage".title())
+
+    container_frm = tk.Frame(master=l_frm)
+    container_frm.pack(padx=2, pady=2)
+
+    save_btn = tk.Button(master=container_frm, command=saves, text="save\nimage".title())
     save_btn.pack(side="left", fill="both")
-    save_btn.configure(bg=left_btn_a_color, activebackground=left_btn_b_color)
 
     open_btn = tk.Button(
-        master=l_frm, command=openim(on_openim), text="load image".title()
+        master=container_frm, command=openim(on_openim), text="load image".title()
     )
     open_btn.pack(side="left", fill="both")
-    open_btn.configure(bg=left_btn_a_color, activebackground=left_btn_b_color)
 
-    restart_btn = tk.Button(master=l_frm, command=restart, text="reset image".title())
-    restart_btn.configure(bg=left_btn_a_color, activebackground=left_btn_b_color)
+    restart_btn = tk.Button(master=container_frm, command=restart, text="reset image".title())
     restart_btn.pack(side="left", fill="both")
 
     crop_even_btn = tk.Button(
-        master=l_frm, command=crop_even, text="crop evenly to grid size".title()
+        master=container_frm, command=crop_even, text="crop evenly to grid size".title()
     )
     crop_even_btn.pack(side="left", fill="both")
-    crop_even_btn.configure(bg=left_btn_a_color, activebackground=left_btn_b_color)
 
-    undo_btn = tk.Button(master=l_frm, command=undo, text="undo\n[Ctr+z]".title())
+    undo_btn = tk.Button(master=container_frm, command=undo, text="undo\n[Ctr+z]".title())
     undo_btn.pack(side="left", fill="both")
-    undo_btn.configure(bg=left_btn_a_color, activebackground=left_btn_b_color)
 
-    redo_btn = tk.Button(master=l_frm, command=redo, text="redo\n[Ctr+Shift+z]".title())
+    redo_btn = tk.Button(master=container_frm, command=redo, text="redo\n[Ctr+Shift+z]".title())
     redo_btn.pack(side="left", fill="both")
-    redo_btn.configure(bg=left_btn_a_color, activebackground=left_btn_b_color)
 
 
 def draw_canvas_frm(canvas_frm):
@@ -104,12 +81,12 @@ def draw_canvas_frm(canvas_frm):
     c.canvas.outline = "red"
     c.canvas.pack()
     c.canvas.create_text(
-        200, 100, text="Load an image please".title(), font=("Helvetica", 24)
+        200, 100, text="No image loaded".title(), font=("Helvetica", 24)
     )
 
 
 def draw_sliders_frm(sliders_frm):
-    sliders_frm["bg"] = sliders_color
+    sliders_frm["bg"] = general_color
 
     wstr = tk.StringVar(value=50)
     wval = tk.IntVar(value=50)
@@ -182,7 +159,7 @@ def draw_sliders_frm(sliders_frm):
 l_frm = tk.Frame(
     master=window, relief=tk.RAISED, borderwidth=5, background=general_color
 )
-sliders_frm = tk.Frame(master=window)
+sliders_frm = tk.Frame(master=window, relief=tk.RAISED, borderwidth=5,)
 canvas_frm = tk.Frame(master=window)
 r_frm = tk.Frame(
     master=window, relief=tk.RAISED, borderwidth=5, background=general_color
